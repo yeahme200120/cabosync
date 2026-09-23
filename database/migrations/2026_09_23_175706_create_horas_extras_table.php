@@ -6,20 +6,20 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('horas_extras', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('empleado_id');
+            $table->date('fecha');
+            $table->integer('horas_solicitadas');
+            $table->integer('horas_aprobadas')->default(0);
+            $table->enum('estado', ['pendiente', 'aprobado', 'rechazado'])->default('pendiente');
+            $table->unsignedBigInteger('aprobado_por_usuario_id')->nullable();
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('horas_extras');

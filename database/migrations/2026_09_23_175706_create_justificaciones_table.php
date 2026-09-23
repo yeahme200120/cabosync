@@ -6,20 +6,20 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('justificaciones', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('empleado_id');
+            $table->date('fecha');
+            $table->enum('motivo', ['permiso', 'enfermedad', 'otro']);
+            $table->text('descripcion')->nullable();
+            $table->string('ruta_archivo')->nullable();
+            $table->unsignedBigInteger('subido_por_usuario_id');
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('justificaciones');

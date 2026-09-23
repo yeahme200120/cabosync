@@ -6,20 +6,19 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('bitacora_acciones', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
+            $table->unsignedBigInteger('usuario_id');
+            $table->string('accion', 100);
+            $table->text('descripcion');
+            $table->string('direccion_ip', 45)->nullable();
+            $table->text('navegador')->nullable();
+            $table->timestamp('created_at')->nullable();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('bitacora_acciones');

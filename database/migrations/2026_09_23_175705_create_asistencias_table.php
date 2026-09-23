@@ -6,20 +6,19 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('asistencias', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('empleado_id');
+            $table->date('fecha');
+            $table->enum('origen_registro', ['jefe_obra', 'seguridad']);
+            $table->enum('estado', ['presente', 'falta']);
+            $table->unsignedBigInteger('usuario_id');
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('asistencias');

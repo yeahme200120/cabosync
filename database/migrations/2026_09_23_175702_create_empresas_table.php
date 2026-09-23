@@ -6,20 +6,19 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('empresas', function (Blueprint $table) {
             $table->id();
+            $table->string('nombre');
+            $table->string('rfc', 50)->nullable();
+            $table->enum('tipo', ['matriz', 'externa'])->default('externa');
+            $table->enum('estatus', ['activo', 'inactivo'])->default('activo');
+            $table->unsignedBigInteger('creado_por_usuario_id')->nullable();
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('empresas');
