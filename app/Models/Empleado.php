@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class Empleado extends Model
 {
@@ -16,6 +17,7 @@ class Empleado extends Model
         'obra_id',
         'rol_id',
         'curp_dni',
+        'foto',
         'nombre',
         'apellido',
         'puesto_cargo',
@@ -36,6 +38,37 @@ class Empleado extends Model
     public function getNombreCompletoAttribute(): string
     {
         return "{$this->nombre} {$this->apellido}";
+    }
+
+    /**
+     * URL pública de la foto del empleado.
+     * Si no tiene foto, devuelve el avatar por defecto.
+     */
+    public function getFotoUrlAttribute(): string
+    {
+        if ($this->foto && Storage::disk('public')->exists($this->foto)) {
+            return asset('storage/' . $this->foto);
+        }
+
+        return asset('img/avatar-default.png');
+    }
+
+    /**
+     * Indica si el empleado tiene foto personalizada.
+     */
+    public function getTieneFotoAttribute(): bool
+    {
+        return $this->foto && Storage::disk('public')->exists($this->foto);
+    }
+
+    /**
+     * Iniciales del empleado (para avatares alternativos).
+     */
+    public function getInicialesAttribute(): string
+    {
+        $n = mb_substr($this->nombre, 0, 1);
+        $a = mb_substr($this->apellido, 0, 1);
+        return mb_strtoupper("{$n}{$a}");
     }
 
     // ============================

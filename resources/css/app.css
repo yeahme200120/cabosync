@@ -1,11 +1,865 @@
-@import 'tailwindcss';
+/* ============================================================
+   CABOSYNC - ESTILOS GLOBALES
+   Único lugar de verdad para colores, tipografía y utilidades.
+   ============================================================ */
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
-@source '../**/*.blade.php';
-@source '../**/*.js';
+/* 1. Tailwind (opcional si lo usas) */
+@import "tailwindcss";
 
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+/* 2. Variables globales de CaboSync */
+:root {
+    /* ====== COLORES OFICIALES ====== */
+    --cabosync-primary: #1e5180; /* Azul CaboSync */
+    --cabosync-primary-dark: #143a5c;
+    --cabosync-primary-light: #4a7ba8;
+    --cabosync-secondary: #f28c28; /* Naranja CaboSync */
+    --cabosync-secondary-dark: #c96f1c;
+    --cabosync-secondary-light: #f8b272;
+    --cabosync-accent: #4a90e2;
+
+    /* ====== ESTADOS ====== */
+    --cabosync-success: #28a745;
+    --cabosync-danger: #dc3545;
+    --cabosync-warning: #ffc107;
+    --cabosync-info: #17a2b8;
+
+    /* ====== NEUTROS ====== */
+    --cabosync-bg: #f4f6f9;
+    --cabosync-surface: #ffffff;
+    --cabosync-border: #e0e0e0;
+    --cabosync-text: #333333;
+    --cabosync-text-muted: #666666;
+
+    /* ====== TIPOGRAFÍA ====== */
+    --cabosync-font: "Segoe UI", system-ui, -apple-system, sans-serif;
+    --cabosync-radius: 0.5rem;
+    --cabosync-radius-sm: 0.375rem;
+
+    /* ====== SOMBRAS ====== */
+    --cabosync-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+    --cabosync-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --cabosync-shadow-lg: 0 4px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* ============================================================
+   3. RESET Y BASE
+   ============================================================ */
+body {
+    font-family: var(--cabosync-font);
+    background-color: var(--cabosync-bg);
+    color: var(--cabosync-text);
+    margin: 0;
+}
+
+/* ============================================================
+   4. UTILIDADES CABOSYNC
+   ============================================================ */
+
+/* --- Colores de texto --- */
+.text-cabosync-primary {
+    color: var(--cabosync-primary) !important;
+}
+.text-cabosync-secondary {
+    color: var(--cabosync-secondary) !important;
+}
+.text-cabosync-accent {
+    color: var(--cabosync-accent) !important;
+}
+
+/* --- Colores de fondo --- */
+.bg-cabosync-primary {
+    background-color: var(--cabosync-primary) !important;
+}
+.bg-cabosync-secondary {
+    background-color: var(--cabosync-secondary) !important;
+}
+.bg-cabosync-bg {
+    background-color: var(--cabosync-bg) !important;
+}
+
+/* --- Bordes --- */
+.border-cabosync-primary {
+    border-color: var(--cabosync-primary) !important;
+}
+.border-cabosync-secondary {
+    border-color: var(--cabosync-secondary) !important;
+}
+
+/* ============================================================
+   5. COMPONENTES GLOBALES
+   ============================================================ */
+
+/* --- NAVBAR PRINCIPAL --- */
+.navbar-cabosync {
+    background-color: var(--cabosync-primary);
+    color: #fff;
+    padding: 0.75rem 1.5rem;
+    box-shadow: var(--cabosync-shadow);
+}
+.navbar-cabosync .navbar-brand {
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.25rem;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.navbar-cabosync .navbar-brand:hover {
+    color: var(--cabosync-secondary);
+}
+.navbar-cabosync .btn-menu {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 1.5rem;
+    padding: 0.25rem 0.75rem;
+}
+.navbar-cabosync .btn-menu:hover {
+    color: var(--cabosync-secondary);
+}
+
+/* --- SIDEBAR --- */
+.sidebar-cabosync {
+    background-color: var(--cabosync-surface);
+    min-height: calc(100vh - 60px);
+    border-right: 1px solid var(--cabosync-border);
+    padding-top: 1rem;
+}
+.sidebar-cabosync .nav-link {
+    color: var(--cabosync-text);
+    padding: 0.75rem 1.25rem;
+    border-left: 4px solid transparent;
+    transition: all 0.2s;
+}
+.sidebar-cabosync .nav-link:hover,
+.sidebar-cabosync .nav-link.active {
+    background-color: #f0f4f8;
+    border-left-color: var(--cabosync-secondary);
+    color: var(--cabosync-primary);
+    font-weight: 600;
+}
+.sidebar-cabosync .nav-link i {
+    width: 24px;
+    margin-right: 0.5rem;
+    color: var(--cabosync-primary);
+}
+
+/* --- CARDS --- */
+.card {
+    border-radius: var(--cabosync-radius);
+}
+.card-header {
+    background-color: var(--cabosync-primary) !important;
+    color: #fff !important;
+    border-radius: var(--cabosync-radius) var(--cabosync-radius) 0 0 !important;
+}
+
+/* --- BOTONES CABOSYNC --- */
+.btn-cabosync-primary {
+    background-color: var(--cabosync-primary);
+    border-color: var(--cabosync-primary);
+    color: #fff;
+}
+.btn-cabosync-primary:hover {
+    background-color: var(--cabosync-primary-dark);
+    border-color: var(--cabosync-primary-dark);
+    color: #fff;
+}
+.btn-cabosync-secondary {
+    background-color: var(--cabosync-secondary);
+    border-color: var(--cabosync-secondary);
+    color: #fff;
+}
+.btn-cabosync-secondary:hover {
+    background-color: var(--cabosync-secondary-dark);
+    border-color: var(--cabosync-secondary-dark);
+    color: #fff;
+}
+
+/* --- LOGIN / RESET PASSWORD --- */
+.login-card,
+.recover-card,
+.reset-card {
+    background: var(--cabosync-surface);
+    padding: 3rem 2.5rem;
+    border-radius: var(--cabosync-radius);
+    box-shadow: var(--cabosync-shadow-lg);
+    max-width: 460px;
+    width: 100%;
+}
+.login-title,
+.recover-title,
+.reset-title {
+    text-align: center;
+    font-weight: 800;
+    color: var(--cabosync-primary);
+    font-size: 1.5rem;
+    letter-spacing: 2px;
+    margin-bottom: 0.5rem;
+}
+.login-title .accent,
+.recover-title .accent,
+.reset-title .accent {
+    color: var(--cabosync-secondary);
+}
+.form-label-cabosync {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--cabosync-text);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+}
+.form-control-cabosync {
+    border: 1px solid var(--cabosync-border);
+    border-radius: var(--cabosync-radius-sm);
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+}
+.form-control-cabosync:focus {
+    border-color: var(--cabosync-primary);
+    box-shadow: 0 0 0 0.2rem rgba(30, 81, 128, 0.15);
+}
+.btn-cabosync-login {
+    background-color: #1a1a1a;
+    color: #fff;
+    border: none;
+    border-radius: var(--cabosync-radius-sm);
+    padding: 0.9rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    width: 100%;
+    margin-top: 1.5rem;
+    transition: all 0.2s;
+}
+.btn-cabosync-login:hover {
+    background-color: #000;
+    color: var(--cabosync-secondary);
+}
+/* --- LOGOS DE AUTENTICACIÓN --- */
+.login-logo,
+.recover-logo,
+.reset-logo {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+.login-logo img,
+.recover-logo img,
+.reset-logo img {
+    display: inline-block;
+    max-height: 100px;
+    height: auto;
+    width: auto;
+}
+/* --- SUBTÍTULOS Y LINKS DE AUTH (compartidos) --- */
+.login-welcome,
+.recover-subtitle,
+.reset-subtitle {
+    text-align: center;
+    color: var(--cabosync-text-muted);
+    font-size: 1.1rem;
+    letter-spacing: 2px;
+    margin-bottom: 2.5rem;
+}
+.recover-subtitle,
+.reset-subtitle {
+    font-size: 0.95rem;
+    letter-spacing: normal;
+}
+.login-footer-link,
+.back-link {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 0.85rem;
+}
+.login-footer-link a,
+.back-link a {
+    color: var(--cabosync-text-muted);
+    text-decoration: none;
+}
+.login-footer-link a:hover,
+.back-link a:hover {
+    color: var(--cabosync-secondary);
+}
+.password-hint {
+    font-size: 0.8rem;
+    color: var(--cabosync-text-muted);
+    margin-top: 0.25rem;
+}
+/* ============================================
+   CABOSYNC - PRELOADER GLOBAL
+   ============================================ */
+.cabosync-preloader {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: all;
+}
+
+.cabosync-preloader__overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(30, 81, 128, 0.85);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    animation: fadeIn 0.2s ease;
+}
+
+.cabosync-preloader__content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    animation: scaleIn 0.3s ease;
+}
+
+.cabosync-preloader__logo {
+    width: 120px;
+    height: auto;
+    max-height: 120px;
+    object-fit: contain;
+    margin-bottom: 1.5rem;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+    animation: logoPulse 1.5s ease-in-out infinite;
+}
+
+.cabosync-preloader__spinner {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 1rem auto;
+    border: 4px solid rgba(255, 255, 255, 0.25);
+    border-top-color: #f28c28;
+    border-right-color: #f28c28;
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+}
+
+.cabosync-preloader__text {
+    color: #ffffff;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin: 0;
+    animation: textPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+@keyframes logoPulse {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.06);
+    }
+}
+@keyframes textPulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}
+/* ============================================
+   MÓDULO EMPLEADOS - GRID DE CARDS
+   ============================================ */
+.empleados-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+}
+
+.empleado-card {
+    background: var(--cabosync-surface);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+    border: 1px solid #f0f0f0;
+    position: relative;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.empleado-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(30, 81, 128, 0.12);
+    border-color: rgba(30, 81, 128, 0.15);
+}
+
+.empleado-card--nuevo {
+    animation: cardNuevoAnim 0.6s ease;
+}
+
+@keyframes cardNuevoAnim {
+    0% {
+        transform: scale(0.85);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Fila superior: foto + info */
+.empleado-card__top {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    width: 100%;
+    min-width: 0;
+}
+
+.empleado-card__foto {
+    width: 72px;
+    height: 72px;
+    border-radius: 12px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background-color: var(--cabosync-bg);
+    border: 2px solid #f0f0f0;
+}
+
+.empleado-card__info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.empleado-card__nombre {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--cabosync-primary);
+    margin: 0;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.empleado-card__curp {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin: 0;
+    font-family: "Courier New", monospace;
+    letter-spacing: 0.5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.empleado-card__badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 0.15rem;
+}
+
+.empleado-card__badges .badge {
+    font-size: 0.68rem;
+    padding: 0.25rem 0.55rem;
+    font-weight: 600;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
+.empleado-card__estatus {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    margin-top: 0.15rem;
+}
+
+.empleado-card__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+}
+.empleado-card__dot--activo {
+    background-color: #28a745;
+}
+.empleado-card__dot--inactivo {
+    background-color: #6c757d;
+}
+
+/* Acciones - Por defecto: fila abajo de la card */
+.empleado-card__acciones {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+    width: 100%;
+}
+
+.empleado-card__acciones .btn {
+    font-size: 0.8rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    font-weight: 600;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+/* ============================================
+   FAB (FLOATING ACTION BUTTON)
+   Solo visible en móvil (< 768px)
+   ============================================ */
+.fab-cabosync {
+    display: none; /* ✅ Oculto por defecto (desktop/tablet) */
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--cabosync-primary);
+    color: #fff;
+    border: none;
+    font-size: 1.5rem;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 20px rgba(30, 81, 128, 0.4);
+    z-index: 1030;
+    cursor: pointer;
+    transition:
+        transform 0.2s ease,
+        background-color 0.2s ease;
+}
+
+/* ✅ Solo visible en móvil */
+@media (max-width: 767px) {
+    .fab-cabosync {
+        display: flex;
+    }
+}
+
+.fab-cabosync:hover {
+    background: var(--cabosync-secondary);
+    color: #fff;
+    transform: scale(1.08) rotate(90deg);
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: var(--cabosync-surface);
+    border-radius: 12px;
+    border: 2px dashed #e0e0e0;
+}
+.empty-state i {
+    font-size: 4rem;
+    color: #d0d0d0;
+}
+.empty-state h4 {
+    color: #6c757d;
+    margin-top: 1rem;
+}
+
+/* ============================================
+   CROPPER (RECORTE DE FOTO)
+   ============================================ */
+.cropper-wrapper {
+    background-color: var(--cabosync-bg);
+    border-radius: 8px;
+    padding: 1rem;
+    max-height: 500px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cropper-wrapper cropper-canvas {
+    max-height: 450px;
+    width: 100%;
+}
+
+.cropper-controls {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+}
+
+/* ============================================
+   RESPONSIVE - EMPLEADOS
+   ============================================ */
+
+/* Desktop grande (≥ 1200px): card horizontal, botones a la derecha */
+@media (min-width: 1200px) {
+    .empleado-card {
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .empleado-card__top {
+        flex: 1;
+        align-items: center;
+        min-width: 0;
+    }
+
+    .empleado-card__acciones {
+        flex-direction: column;
+        width: auto;
+        flex: 0 0 auto;
+        gap: 0.35rem;
+    }
+
+    .empleado-card__acciones .btn {
+        flex: 0 0 auto;
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        font-size: 0.85rem;
+    }
+
+    .empleado-card__acciones .btn .btn-text {
+        display: none;
+    }
+}
+
+/* Tablet: 2 columnas */
+@media (max-width: 1199px) {
+    .empleados-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Móvil: 1 columna */
+@media (max-width: 767px) {
+    .empleados-grid {
+        grid-template-columns: 1fr;
+        gap: 0.85rem;
+    }
+
+    .empleado-card {
+        padding: 1rem;
+        gap: 0.75rem;
+    }
+
+    .empleado-card__foto {
+        width: 60px;
+        height: 60px;
+    }
+
+    .empleado-card__acciones .btn {
+        padding: 0.55rem;
+        font-size: 0.85rem;
+    }
+
+    .fab-cabosync {
+        bottom: 1rem;
+        right: 1rem;
+        width: 56px;
+        height: 56px;
+        font-size: 1.5rem;
+    }
+}
+/* ============================================================
+   MÓDULO IMPORTAR EMPLEADOS
+   ============================================================ */
+.import-formato-card {
+    background: #fff;
+    border: 2px solid var(--cabosync-border);
+    border-radius: 12px;
+    padding: 2rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.import-formato-card i {
+    font-size: 3rem;
+    color: var(--cabosync-primary);
+    transition: all 0.25s ease;
+}
+
+.import-formato-card h6 {
+    font-weight: 700;
+    color: var(--cabosync-primary);
+    margin: 0.5rem 0 0 0;
+}
+
+.import-formato-card small {
+    color: #6c757d;
+    font-size: 0.75rem;
+}
+
+.import-formato-card:hover {
+    border-color: var(--cabosync-primary);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(30, 81, 128, 0.12);
+}
+
+.import-formato-card.active {
+    border-color: var(--cabosync-secondary);
+    background: rgba(242, 140, 40, 0.05);
+    box-shadow: 0 0 0 3px rgba(242, 140, 40, 0.15);
+}
+
+.import-formato-card.active i {
+    color: var(--cabosync-secondary);
+    transform: scale(1.1);
+}
+
+/* Contadores de progreso y resultado */
+.import-contador {
+    background: #fff;
+    border: 1px solid var(--cabosync-border);
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.import-contador__num {
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 0.35rem;
+}
+
+.import-contador__label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #6c757d;
+}
+
+.import-contador--ok { border-left: 4px solid var(--cabosync-success); }
+.import-contador--ok .import-contador__num { color: var(--cabosync-success); }
+
+.import-contador--warn { border-left: 4px solid var(--cabosync-warning); }
+.import-contador--warn .import-contador__num { color: #d39e00; }
+
+.import-contador--info { border-left: 4px solid var(--cabosync-info); }
+.import-contador--info .import-contador__num { color: var(--cabosync-info); }
+
+.import-contador--error { border-left: 4px solid var(--cabosync-danger); }
+.import-contador--error .import-contador__num { color: var(--cabosync-danger); }
+
+/* Barra de progreso CaboSync */
+.progress-bar.bg-cabosync-primary {
+    background-color: var(--cabosync-primary) !important;
+}
+
+/* Tabs del resultado */
+#modalImportar .nav-tabs .nav-link {
+    color: var(--cabosync-text);
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+#modalImportar .nav-tabs .nav-link.active {
+    color: var(--cabosync-primary);
+    border-color: var(--cabosync-border) var(--cabosync-border) #fff;
+    font-weight: 700;
+}
+
+/* Celdas de cambio en tabla actualizados */
+.cambio-campo {
+    font-size: 0.75rem;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    margin-right: 0.25rem;
+    display: inline-block;
+    margin-bottom: 0.15rem;
+}
+
+.cambio-campo__antes {
+    background: #f8d7da;
+    color: #721c24;
+    text-decoration: line-through;
+    padding: 0.1rem 0.3rem;
+    border-radius: 3px;
+}
+
+.cambio-campo__despues {
+    background: #d4edda;
+    color: #155724;
+    padding: 0.1rem 0.3rem;
+    border-radius: 3px;
+}
+
+/* Truncar texto largo en tablas */
+.import-table-truncate {
+    max-width: 250px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (max-width: 767px) {
+    .import-contador__num { font-size: 1.5rem; }
+    .import-formato-card { padding: 1.25rem 0.75rem; }
+    .import-formato-card i { font-size: 2rem; }
+}
+
+/* --- IMPRESIÓN PROHIBIDA --- */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    body::after {
+        content: "🔒 Documento protegido. CaboSync - ID SOFTWARE HOUSE";
+        display: block;
+        font-size: 24px;
+        color: #999;
+        text-align: center;
+        margin-top: 50px;
+    }
 }

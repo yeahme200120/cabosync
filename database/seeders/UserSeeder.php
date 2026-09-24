@@ -22,7 +22,7 @@ class UserSeeder extends Seeder
 
         // 1. ADMIN — ID SOFTWARE HOUSE
         User::updateOrCreate(
-            ['email' => 'admin@idsoftwarehouse.com'],
+            ['email' => 'yeahme200120@gmail.com'],
             [
                 'empresa_id' => $empresaMatriz?->id,
                 'rol_id'     => $rolAdmin->id,

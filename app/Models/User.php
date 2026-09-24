@@ -73,7 +73,7 @@ class User extends Authenticatable
     // HELPERS
     // ============================
 
-    public function esAdminRaiz(): bool
+    public function esAdmin(): bool
     {
         return $this->rol?->codigo === 'admin';
     }
