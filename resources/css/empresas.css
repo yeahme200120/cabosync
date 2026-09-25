@@ -1,0 +1,159 @@
+/* ============================================
+   CABOSYNC - MÓDULO EMPRESAS
+   ============================================ */
+
+.empresas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.25rem;
+}
+
+.empresa-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 1.25rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border: 1px solid #e0e0e0;
+}
+
+.empresa-card:hover {
+    box-shadow: 0 4px 16px rgba(30, 81, 128, 0.12);
+    transform: translateY(-2px);
+}
+
+.empresa-card__top {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.empresa-card__icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: #ffffff;
+    flex-shrink: 0;
+}
+
+.empresa-card__icon--matriz {
+    background: linear-gradient(135deg, #1E5180 0%, #2a6dad 100%);
+}
+
+.empresa-card__icon--externa {
+    background: linear-gradient(135deg, #F28C28 0%, #ffb15c 100%);
+}
+
+.empresa-card__info {
+    flex: 1;
+    min-width: 0;
+}
+
+.empresa-card__nombre {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1E5180;
+    margin: 0 0 0.25rem 0;
+    word-break: break-word;
+}
+
+.empresa-card__rfc {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin: 0 0 0.5rem 0;
+}
+
+.empresa-card__badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-bottom: 0.5rem;
+}
+
+.empresa-card__badges .badge {
+    font-size: 0.7rem;
+    font-weight: 500;
+    padding: 0.35rem 0.6rem;
+}
+
+.empresa-card__estatus {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+}
+
+.empresa-card__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.empresa-card__dot--activo {
+    background: #28a745;
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.15);
+}
+
+.empresa-card__dot--inactivo {
+    background: #adb5bd;
+}
+
+.empresa-card__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.empresa-card__acciones .btn {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.75rem;
+    flex: 1;
+    min-width: fit-content;
+}
+
+/* FAB */
+.fab-cabosync {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #1E5180;
+    color: #ffffff;
+    border: none;
+    font-size: 1.5rem;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(30, 81, 128, 0.3);
+    z-index: 1000;
+    transition: all 0.2s ease;
+}
+
+.fab-cabosync:hover {
+    background: #F28C28;
+    transform: scale(1.05);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .empresas-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .fab-cabosync {
+        display: flex;
+    }
+}

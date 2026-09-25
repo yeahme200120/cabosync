@@ -4,12 +4,16 @@
     $puedeImpersonar = $esAdmin && $usuario->id !== $authUser->id;
     $puedeEliminar = $authUser->id !== $usuario->id;
     $esMiPropioUsuario = $authUser->id === $usuario->id;
+    $estaEnLinea = in_array($usuario->id, $usuariosEnLinea ?? []);
 @endphp
 
 <div class="usuario-card" data-usuario-id="{{ $usuario->id }}">
     <div class="usuario-card__top">
         <div class="usuario-card__avatar">
             <i class="bi bi-person-fill"></i>
+            @if ($estaEnLinea)
+                <span class="usuario-card__avatar-dot" title="En línea"></span>
+            @endif
         </div>
 
         <div class="usuario-card__info">
@@ -20,7 +24,7 @@
 
             <div class="usuario-card__badges">
                 <span class="badge bg-cabosync-primary">{{ $usuario->rol?->nombre ?? 'Sin rol' }}</span>
-                @if($usuario->empresa)
+                @if ($usuario->empresa)
                     <span class="badge bg-light text-dark border">
                         <i class="bi bi-building"></i> {{ $usuario->empresa->nombre }}
                     </span>
@@ -36,7 +40,16 @@
                 <span class="{{ $usuario->estatus === 'activo' ? 'text-success' : 'text-muted' }}">
                     {{ $usuario->estatus === 'activo' ? 'Activo' : 'Inactivo' }}
                 </span>
-                @if($usuario->puede_conciliar)
+
+                @if ($estaEnLinea)
+                    <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle ms-1"
+                          title="Tiene una sesión activa en el sistema">
+                        <i class="bi bi-circle-fill" style="font-size: 0.5rem;"></i>
+                        En línea
+                    </span>
+                @endif
+
+                @if ($usuario->puede_conciliar)
                     <span class="badge bg-info text-dark" title="Puede conciliar">
                         <i class="bi bi-shuffle"></i> Conciliador
                     </span>
@@ -46,6 +59,14 @@
     </div>
 
     <div class="usuario-card__acciones">
+        <button class="btn btn-outline-info btn-ver-historial"
+                data-id="{{ $usuario->id }}"
+                data-nombre="{{ $usuario->nombre }}"
+                title="Ver historial de acciones">
+            <i class="bi bi-clock-history"></i>
+            <span class="btn-text">Historial</span>
+        </button>
+
         <button class="btn btn-cabosync-primary btn-editar-usuario"
                 data-id="{{ $usuario->id }}"
                 title="Editar">
@@ -61,7 +82,7 @@
             <span class="btn-text">Reset</span>
         </button>
 
-        @if($puedeImpersonar)
+        @if ($puedeImpersonar)
             <button class="btn btn-outline-secondary btn-impersonar"
                     data-id="{{ $usuario->id }}"
                     data-nombre="{{ $usuario->nombre }}"
@@ -71,7 +92,7 @@
             </button>
         @endif
 
-        @if($usuario->estatus === 'activo' && !$esMiPropioUsuario)
+        @if ($usuario->estatus === 'activo' && !$esMiPropioUsuario)
             <button class="btn btn-outline-danger btn-desactivar-usuario"
                     data-id="{{ $usuario->id }}"
                     data-nombre="{{ $usuario->nombre }}"
@@ -81,7 +102,7 @@
             </button>
         @endif
 
-        @if($puedeEliminar)
+        @if ($puedeEliminar)
             <button class="btn btn-danger btn-eliminar-usuario"
                     data-id="{{ $usuario->id }}"
                     data-nombre="{{ $usuario->nombre }}"

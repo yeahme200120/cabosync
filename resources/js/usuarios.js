@@ -126,7 +126,80 @@ function actualizarCard(id, cardHtml) {
 // LISTENER ÚNICO Y MAESTRO PARA TODAS LAS ACCIONES
 // ============================================
 document.addEventListener("click", async function (e) {
+        // ------------------------------------------------
+    // 0. VER HISTORIAL DE USUARIO
+    // ------------------------------------------------
+    const btnHistorial = e.target.closest(".btn-ver-historial");
+    if (btnHistorial) {
+        e.preventDefault();
+        const id = btnHistorial.dataset.id;
+        const nombre = btnHistorial.dataset.nombre;
 
+        document.getElementById("historialUsuarioNombre").textContent = nombre;
+        document.getElementById("historialLoading").classList.remove("d-none");
+        document.getElementById("historialVacio").classList.add("d-none");
+        document.getElementById("historialContenido").classList.add("d-none");
+        document.getElementById("historialTablaBody").innerHTML = "";
+
+        new bootstrap.Modal(document.getElementById("modalHistorialUsuario")).show();
+
+        try {
+            const { data } = await axios.get(
+                `${window.USUARIOS_CONFIG.rutas.base}/${id}/historial`
+            );
+
+            document.getElementById("historialLoading").classList.add("d-none");
+
+            if (!data.success || !data.registros || data.registros.length === 0) {
+                document.getElementById("historialVacio").classList.remove("d-none");
+                return;
+            }
+
+            const tbody = document.getElementById("historialTablaBody");
+            tbody.innerHTML = "";
+
+            data.registros.forEach((r) => {
+                const colores = {
+                    insert: "success",
+                    update: "warning",
+                    delete: "danger",
+                    login:  "info",
+                    logout: "secondary",
+                    view:   "light",
+                    otro:   "secondary",
+                };
+                const colorBadge = colores[r.tipo_accion] || "secondary";
+                const textBadge = ["light", "warning"].includes(colorBadge) ? "text-dark" : "";
+
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>
+                        <div class="small">${r.fecha ?? "-"}</div>
+                        <div class="text-muted" style="font-size: 0.72rem;">${r.fecha_humana ?? ""}</div>
+                    </td>
+                    <td>
+                        <span class="badge bg-${colorBadge} ${textBadge}">${r.accion}</span>
+                        ${r.es_publico ? '<span class="badge bg-warning text-dark ms-1">Público</span>' : ""}
+                    </td>
+                    <td class="small">${r.descripcion ?? "-"}</td>
+                    <td class="small text-muted">${r.actor_nombre ?? "Sistema"}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById("historialContenido").classList.remove("d-none");
+        } catch (error) {
+            console.error("Error historial:", error.response?.data);
+            document.getElementById("historialLoading").classList.add("d-none");
+            const vacio = document.getElementById("historialVacio");
+            vacio.classList.remove("d-none");
+            vacio.innerHTML = `
+                <i class="bi bi-exclamation-triangle text-danger" style="font-size: 3rem;"></i>
+                <p class="text-danger mt-2 mb-0">Error al cargar el historial.</p>
+            `;
+        }
+        return;
+    }
     // ------------------------------------------------
     // 1. IMPERSONAR (primero, para que no lo bloquee nada)
     // ------------------------------------------------

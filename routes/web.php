@@ -1,9 +1,13 @@
 <?php
 
 use App\Http\Controllers\AsistenciaController;
+use App\Http\Controllers\BitacoraController;
 use App\Http\Controllers\ConciliacionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EmpleadoController;
+use App\Http\Controllers\EmpresaController;
+use App\Http\Controllers\LegalController;
+use App\Http\Controllers\ObraController;
 use App\Http\Controllers\ReporteController;
 use App\Http\Controllers\UsuarioController;
 use Illuminate\Support\Facades\Route;
@@ -81,6 +85,36 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/enviar-correo',   [ReporteController::class, 'enviarCorreo'])->name('enviarCorreo');
     });
 
+    // =========================================================
+    // EMPRESAS
+    // =========================================================
+    Route::prefix('empresas')->name('empresas.')->middleware('auth')->group(function () {
+        // Específicas primero
+        Route::get('/',                    [EmpresaController::class, 'index'])->name('index');
+        Route::post('/',                   [EmpresaController::class, 'store'])->name('store');
+
+        // Con parámetros al final
+        Route::get('/{id}',                [EmpresaController::class, 'mostrar'])->name('mostrar');
+        Route::put('/{id}',                [EmpresaController::class, 'update'])->name('update');
+        Route::delete('/{id}',             [EmpresaController::class, 'destroy'])->name('destroy');
+        Route::get('/{id}/card',           [EmpresaController::class, 'card'])->name('card');
+        Route::post('/{id}/desactivar',    [EmpresaController::class, 'desactivar'])->name('desactivar');
+    });
+    // =========================================================
+    // OBRAS
+    // =========================================================
+    Route::prefix('obras')->name('obras.')->middleware('auth')->group(function () {
+        Route::get('/',                    [ObraController::class, 'index'])->name('index');
+        Route::post('/',                   [ObraController::class, 'store'])->name('store');
+
+        Route::get('/{id}',                [ObraController::class, 'mostrar'])->name('mostrar');
+        Route::put('/{id}',                [ObraController::class, 'update'])->name('update');
+        Route::delete('/{id}',             [ObraController::class, 'destroy'])->name('destroy');
+        Route::get('/{id}/card',           [ObraController::class, 'card'])->name('card');
+        Route::post('/{id}/pausar',        [ObraController::class, 'pausar'])->name('pausar');
+        Route::post('/{id}/activar',       [ObraController::class, 'activar'])->name('activar');
+        Route::post('/{id}/terminar',      [ObraController::class, 'terminar'])->name('terminar');
+    });
     // ============================================
     // MÓDULO USUARIOS
     // ============================================
@@ -97,14 +131,38 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/{id}',                [UsuarioController::class, 'update'])->name('update');
         Route::delete('/{id}',             [UsuarioController::class, 'destroy'])->name('destroy');
         Route::get('/{id}/card',           [UsuarioController::class, 'card'])->name('card');
+        Route::get('/{id}/historial',       [UsuarioController::class, 'historial'])->name('historial');
         Route::post('/{id}/desactivar',    [UsuarioController::class, 'desactivar'])->name('desactivar');
         Route::post('/{id}/reset-password', [UsuarioController::class, 'resetPassword'])->name('resetPassword');
         Route::post('/{id}/impersonar',    [UsuarioController::class, 'impersonar'])->name('impersonar');
+    });
+    // =========================================================
+    // BITÁCORA
+    // =========================================================
+    Route::prefix('bitacora')->name('bitacora.')->middleware('auth')->group(function () {
+        Route::get('/',          [BitacoraController::class, 'index'])->name('index');
+        Route::get('/{id}',      [BitacoraController::class, 'mostrar'])->name('mostrar');
+    });
+    Route::prefix('legal')->name('legal.')->group(function () {
+        Route::get('/mis-consentimientos', [LegalController::class, 'misConsentimientos'])->name('misConsentimientos');
+        Route::post('/aceptar',            [LegalController::class, 'aceptar'])->name('aceptar');
+    });
+    Route::prefix('configuracion/legal')->name('legal.admin.')->group(function () {
+        Route::get('/',       [LegalController::class, 'admin'])->name('index');
+        Route::post('/guardar', [LegalController::class, 'guardar'])->name('guardar');
     });
 });
 
 // ============================================
 // DESCARGA PÚBLICA (sin auth)
 // ============================================
+// =========================================================
+// LEGAL — PÚBLICO (sin auth)
+// =========================================================
+Route::prefix('legal')->name('legal.')->group(function () {
+    Route::get('/terminos',   [LegalController::class, 'terminos'])->name('terminos');
+    Route::get('/aviso',      [LegalController::class, 'aviso'])->name('aviso');
+});
+
 Route::get('/r/{token}',                  [ReporteController::class, 'descargaPublica'])->name('reportes.publico.descarga');
 Route::get('/r/{token}/descargar/{tipo}', [ReporteController::class, 'descargarArchivo'])->name('reportes.publico.descargar');

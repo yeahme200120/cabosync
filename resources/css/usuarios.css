@@ -239,3 +239,64 @@
         font-size: 0.9rem;
     }
 }
+/* ============================
+   BADGE "EN LÍNEA" — DOT EN AVATAR
+   ============================ */
+.usuario-card__avatar {
+    position: relative;
+}
+
+.usuario-card__avatar-dot {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 12px;
+    height: 12px;
+    background-color: #28a745;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.25);
+    animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+    0%, 100% {
+        box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.25);
+    }
+    50% {
+        box-shadow: 0 0 0 6px rgba(40, 167, 69, 0.1);
+    }
+}
+
+/* ============================
+   MODAL HISTORIAL
+   ============================ */
+.historial-tabla {
+    font-size: 0.875rem;
+}
+
+.historial-tabla thead th {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+    color: #495057;
+    border-bottom: 2px solid #dee2e6;
+    padding: 0.75rem 0.85rem;
+    white-space: nowrap;
+}
+
+.historial-tabla tbody td {
+    padding: 0.65rem 0.85rem;
+    vertical-align: middle;
+}
+
+@media (max-width: 768px) {
+    .historial-tabla {
+        font-size: 0.8rem;
+    }
+
+    .historial-tabla tbody td {
+        padding: 0.55rem 0.6rem;
+    }
+}

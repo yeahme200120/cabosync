@@ -1,0 +1,139 @@
+/* ============================================================
+   CABOSYNC - MÓDULO LEGAL
+   ============================================================ */
+
+/* ============================
+   MODAL BLOQUEANTE DE ACEPTACIÓN
+   ============================ */
+#modalAceptarLegal .modal-content {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 20px 60px rgba(30, 81, 128, 0.25);
+}
+
+#modalAceptarLegal .modal-header {
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+/* Área scrolleable del contenido legal */
+.legal-scroll {
+    max-height: 420px;
+    overflow-y: auto;
+    padding: 1rem 1.25rem;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: #333;
+}
+
+.legal-scroll h3 {
+    color: #1E5180;
+    font-size: 1.25rem;
+    margin-top: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.legal-scroll h4 {
+    color: #1E5180;
+    font-size: 1rem;
+    margin-top: 1.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.legal-scroll h5 {
+    color: #1E5180;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #F28C28;
+}
+
+.legal-scroll ul {
+    padding-left: 1.5rem;
+}
+
+.legal-scroll li {
+    margin-bottom: 0.35rem;
+}
+
+/* Scroll personalizado */
+.legal-scroll::-webkit-scrollbar {
+    width: 8px;
+}
+.legal-scroll::-webkit-scrollbar-track {
+    background: #e9ecef;
+    border-radius: 4px;
+}
+.legal-scroll::-webkit-scrollbar-thumb {
+    background: #1E5180;
+    border-radius: 4px;
+}
+.legal-scroll::-webkit-scrollbar-thumb:hover {
+    background: #F28C28;
+}
+
+/* Checkbox de aceptación */
+.legal-check:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* ============================
+   VISTA PÚBLICA
+   ============================ */
+.legal-public-header {
+    background: linear-gradient(135deg, #1E5180, #2a6dad);
+    color: #fff;
+    padding: 2rem 1rem;
+    text-align: center;
+}
+
+.legal-public-container {
+    max-width: 900px;
+    margin: 2rem auto;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    padding: 2.5rem;
+}
+
+/* ============================
+   KPI ICONS (Mis Consentimientos)
+   ============================ */
+.kpi-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.kpi-icon--primary {
+    background: linear-gradient(135deg, #1E5180, #2a6dad);
+}
+
+.kpi-icon--success {
+    background: linear-gradient(135deg, #28a745, #4ec27a);
+}
+
+/* ============================
+   RESPONSIVE
+   ============================ */
+@media (max-width: 768px) {
+    .legal-scroll {
+        max-height: 300px;
+        font-size: 0.85rem;
+    }
+
+    .legal-public-container {
+        padding: 1.5rem;
+        margin: 1rem;
+    }
+}

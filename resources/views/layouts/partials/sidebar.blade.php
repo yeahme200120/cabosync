@@ -73,8 +73,19 @@
     {{-- EMPRESAS --}}
     @if (auth()->user()->tienePermiso('empresas.ver'))
         <li class="nav-item">
-            <a class="nav-link" href="#">
-                <i class="bi bi-building"></i> Empresas
+            <a href="{{ route('empresas.index') }}"
+                class="nav-link {{ request()->routeIs('empresas.*') ? 'active' : '' }}">
+                <i class="bi bi-building"></i>
+                <span>Empresas</span>
+            </a>
+        </li>
+    @endif
+    {{-- EMPRESAS --}}
+    @if (auth()->user()->tienePermiso('empresas.ver'))
+        <li class="nav-item">
+            <a href="{{ route('obras.index') }}" class="nav-link {{ request()->routeIs('obras.*') ? 'active' : '' }}">
+                <i class="bi bi-hammer"></i>
+                <span>Obras</span>
             </a>
         </li>
     @endif
@@ -105,12 +116,12 @@
     @endif
 
     {{-- BITÁCORA --}}
-    @if (auth()->user()->tienePermiso('bitacora.ver'))
-        <li class="nav-item">
-            <a class="nav-link" href="#">
-                <i class="bi bi-journal-text"></i> Bitácora
-            </a>
-        </li>
+    @if (auth()->user()->esAdministrador() || auth()->user()->esContratista())
+        <a href="{{ route('bitacora.index') }}"
+            class="nav-link {{ request()->routeIs('bitacora.*') ? 'active' : '' }}">
+            <i class="bi bi-clock-history"></i>
+            <span>Bitácora</span>
+        </a>
     @endif
 
     {{-- CONFIGURACIÓN --}}
@@ -121,19 +132,34 @@
             </a>
         </li>
     @endif
+    {{-- CONFIGURACIÓN LEGAL (Admin) --}}
+    @if (auth()->user()->esAdministrador())
+        <li class="nav-item">
+            <a href="{{ route('legal.admin.index') }}"
+                class="nav-link {{ request()->routeIs('legal.admin.*') ? 'active' : '' }}">
+                <i class="bi bi-shield-lock"></i> Configuración Legal
+            </a>
+        </li>
+    @endif
 
-    {{-- TÉRMINOS Y PRIVACIDAD (siempre visible) --}}
+    {{-- TÉRMINOS Y PRIVACIDAD --}}
     <li class="nav-item mt-3">
         <small class="text-muted px-3 text-uppercase fw-bold" style="font-size: 0.7rem;">Legal</small>
     </li>
     <li class="nav-item">
-        <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#modalAvisoPrivacidad">
+        <a href="{{ route('legal.aviso') }}" target="_blank" class="nav-link">
             <i class="bi bi-shield-check"></i> Aviso de Privacidad
         </a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#modalTerminos">
+        <a href="{{ route('legal.terminos') }}" target="_blank" class="nav-link">
             <i class="bi bi-file-earmark-text"></i> Términos y Condiciones
+        </a>
+    </li>
+    <li class="nav-item">
+        <a href="{{ route('legal.misConsentimientos') }}"
+            class="nav-link {{ request()->routeIs('legal.misConsentimientos') ? 'active' : '' }}">
+            <i class="bi bi-clock-history"></i> Mis Consentimientos
         </a>
     </li>
 

@@ -636,7 +636,54 @@
                 </div>
             </div>
         </div>
+        {{-- MODAL HISTORIAL DE USUARIO --}}
+        <div class="modal fade" id="modalHistorialUsuario" tabindex="-1" data-bs-backdrop="static">
+            <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header bg-cabosync-primary text-white">
+                        <h5 class="modal-title">
+                            <i class="bi bi-clock-history"></i>
+                            Historial de: <span id="historialUsuarioNombre">-</span>
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
 
+                    <div class="modal-body">
+                        <div id="historialLoading" class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <p class="text-muted mt-2 mb-0">Cargando historial...</p>
+                        </div>
+
+                        <div id="historialVacio" class="text-center py-5 d-none">
+                            <i class="bi bi-inbox text-muted" style="font-size: 3rem; opacity: 0.4;"></i>
+                            <p class="text-muted mt-2 mb-0">Este usuario no tiene acciones registradas.</p>
+                        </div>
+
+                        <div id="historialContenido" class="d-none">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover align-middle mb-0 historial-tabla">
+                                    <thead class="table-light sticky-top">
+                                        <tr>
+                                            <th style="width: 130px;">Fecha</th>
+                                            <th style="width: 170px;">Acción</th>
+                                            <th>Descripción</th>
+                                            <th style="width: 160px;">Actor</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="historialTablaBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="bi bi-x-lg"></i> Cerrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 @endsection
 

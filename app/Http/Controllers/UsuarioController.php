@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
@@ -45,7 +46,7 @@ class UsuarioController extends Controller
         // Aislamiento por rol
         if ($user->esContratista()) {
             $query->where('empresa_id', $user->empresa_id)
-                  ->ocultarAdmin();
+                ->ocultarAdmin();
         }
 
         // Filtros opcionales
@@ -53,7 +54,7 @@ class UsuarioController extends Controller
             $busqueda = $request->input('busqueda');
             $query->where(function ($q) use ($busqueda) {
                 $q->where('nombre', 'like', "%{$busqueda}%")
-                  ->orWhere('email', 'like', "%{$busqueda}%");
+                    ->orWhere('email', 'like', "%{$busqueda}%");
             });
         }
 
@@ -81,10 +82,20 @@ class UsuarioController extends Controller
         // Roles permitidos según el usuario
         $rolesPermitidos = $this->rolesDisponibles($user);
 
+        // Usuarios con sesión activa en los últimos 5 minutos
+        $timestampLimite = now()->subMinutes(5)->timestamp;
+        $usuariosEnLinea = DB::table('sessions')
+            ->whereNotNull('user_id')
+            ->where('last_activity', '>=', $timestampLimite)
+            ->pluck('user_id')
+            ->unique()
+            ->toArray();
+
         return view('usuarios.index', compact(
             'usuarios',
             'empresas',
-            'rolesPermitidos'
+            'rolesPermitidos',
+            'usuariosEnLinea'   // <-- NUEVO
         ));
     }
 
@@ -140,7 +151,7 @@ class UsuarioController extends Controller
                     $user->nombre
                 ));
             } catch (\Exception $e) {
-                \Log::warning('No se pudo enviar correo de bienvenida', [
+                Log::warning('No se pudo enviar correo de bienvenida', [
                     'user_id' => $nuevoUsuario->id,
                     'error'   => $e->getMessage(),
                 ]);
@@ -185,7 +196,7 @@ class UsuarioController extends Controller
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Error creando usuario', ['exception' => $e]);
+            Log::error('Error creando usuario', ['exception' => $e]);
             return response()->json(['success' => false, 'error' => 'Error: ' . $e->getMessage()], 500);
         }
     }
@@ -490,7 +501,7 @@ class UsuarioController extends Controller
                     true // esReset
                 ));
             } catch (\Exception $e) {
-                \Log::warning('No se pudo enviar correo de reset', ['user_id' => $usuario->id]);
+                Log::warning('No se pudo enviar correo de reset', ['user_id' => $usuario->id]);
             }
 
             BitacoraService::actualizar(
@@ -657,7 +668,7 @@ class UsuarioController extends Controller
                 'errores' => $resultado['errores'],
             ]);
         } catch (\Exception $e) {
-            \Log::error('Error importando usuarios', ['exception' => $e]);
+            Log::error('Error importando usuarios', ['exception' => $e]);
             return response()->json(['success' => false, 'error' => 'Error: ' . $e->getMessage()], 500);
         }
     }
@@ -711,7 +722,7 @@ class UsuarioController extends Controller
                 'errores' => $resultado['errores'],
             ]);
         } catch (\Exception $e) {
-            \Log::error('Error importando usuarios SQL', ['exception' => $e]);
+            Log::error('Error importando usuarios SQL', ['exception' => $e]);
             return response()->json(['success' => false, 'error' => 'Error: ' . $e->getMessage()], 500);
         }
     }
@@ -759,7 +770,66 @@ class UsuarioController extends Controller
             'plantilla-usuarios.xlsx'
         );
     }
+    // =========================================================
+    // HISTORIAL DE ACCIONES DEL USUARIO
+    // =========================================================
+    public function historial(Request $request, $id)
+    {
+        $user = Auth::user();
 
+        if (!$this->puedeGestionarUsuarios($user)) {
+            return response()->json(['success' => false, 'error' => 'No autorizado'], 403);
+        }
+
+        $usuario = User::findOrFail($id);
+
+        // Aislamiento: Contratista solo ve usuarios de su empresa
+        if ($user->esContratista()) {
+            if ($usuario->empresa_id !== $user->empresa_id || $usuario->esAdministrador()) {
+                return response()->json(['success' => false, 'error' => 'No autorizado'], 403);
+            }
+        }
+
+        // Obtener bitácora relacionada con ESTE usuario (como actor o como afectado)
+        $registros = \App\Models\BitacoraAccion::where(function ($q) use ($usuario) {
+            $q->where('usuario_id', $usuario->id)
+                ->orWhere(function ($q2) use ($usuario) {
+                    $q2->where('modelo_afectado', 'App\Models\User')
+                        ->where('modelo_id', $usuario->id);
+                });
+        })
+            ->orderByDesc('created_at')
+            ->limit(50)
+            ->get();
+
+        $registrosMapeados = $registros->map(function ($r) {
+            return [
+                'id'            => $r->id,
+                'accion'        => $r->accion,
+                'descripcion'   => $r->descripcion,
+                'tipo_accion'   => $r->tipo_accion,
+                'fecha'         => optional($r->created_at)->format('d/m/Y H:i'),
+                'fecha_humana'  => optional($r->created_at)->diffForHumans(),
+                'datos_antes'   => $r->datos_antes,
+                'datos_despues' => $r->datos_despues,
+                'actor_nombre'  => optional($r->usuario)->nombre ?? 'Sistema',
+                'es_publico'    => (bool) $r->es_publico,
+                'direccion_ip'  => $r->direccion_ip,
+                'latitud'       => $r->latitud,
+                'longitud'      => $r->longitud,
+            ];
+        });
+
+        return response()->json([
+            'success'   => true,
+            'usuario'   => [
+                'id'     => $usuario->id,
+                'nombre' => $usuario->nombre,
+                'email'  => $usuario->email,
+            ],
+            'registros' => $registrosMapeados,
+        ]);
+    }
     // =========================================================
     // HELPERS PROTEGIDOS
     // =========================================================

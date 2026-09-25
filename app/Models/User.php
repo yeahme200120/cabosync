@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 
 class User extends Authenticatable
 {
@@ -157,5 +158,18 @@ class User extends Authenticatable
     public function empresaFiltroId(): ?int
     {
         return $this->empresa_id;
+    }
+    /**
+     * ¿El usuario tiene una sesión activa en el sistema?
+     * Considera "activo" si tuvo actividad en los últimos 5 minutos.
+     */
+    public function estaActivoEnSistema(): bool
+    {
+        $timestampLimite = now()->subMinutes(5)->timestamp;
+
+        return DB::table('sessions')
+            ->where('user_id', $this->id)
+            ->where('last_activity', '>=', $timestampLimite)
+            ->exists();
     }
 }

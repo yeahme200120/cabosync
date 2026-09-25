@@ -116,6 +116,33 @@
     <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
+        {{-- MODAL BLOQUEANTE DE ACEPTACIÓN LEGAL --}}
+    @auth
+        @php
+            $userActual = auth()->user();
+            $versionTerminosActual = \App\Models\ConfiguracionSistema::obtener('legal.terminos.version', '1.0');
+            $versionAvisoActual    = \App\Models\ConfiguracionSistema::obtener('legal.aviso_privacidad.version', '1.0');
+
+            $aceptoTerminos = \App\Models\Consentimiento::where('usuario_id', $userActual->id)
+                ->where('tipo', 'terminos')
+                ->where('version', $versionTerminosActual)
+                ->where('aceptado', true)
+                ->exists();
+
+            $aceptoAviso = \App\Models\Consentimiento::where('usuario_id', $userActual->id)
+                ->where('tipo', 'privacidad')
+                ->where('version', $versionAvisoActual)
+                ->where('aceptado', true)
+                ->exists();
+
+            $mostrarModalLegal = !$aceptoTerminos || !$aceptoAviso;
+        @endphp
+
+        @if ($mostrarModalLegal)
+            @include('legal._modal_aceptacion')
+        @endif
+    @endauth
+
     @stack('scripts')
 </body>
 
