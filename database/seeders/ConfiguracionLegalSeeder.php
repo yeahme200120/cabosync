@@ -29,7 +29,7 @@ class ConfiguracionLegalSeeder extends Seeder
     private function avisoPrivacidad(): string
     {
         return <<<HTML
-<h3>Aviso de Privacidad - CaboSync</h3>
+<h3>Aviso de Privacidad - ID SOFTAWRE HOUSE</h3>
 <p><strong>Última actualización:</strong> 25 de septiembre de 2026</p>
 
 <h4>1. Identidad del Responsable</h4>
@@ -69,14 +69,14 @@ HTML;
     private function terminosCondiciones(): string
     {
         return <<<HTML
-<h3>Términos y Condiciones de Uso - CaboSync</h3>
+<h3>Términos y Condiciones de Uso - ID SOFTAWRE HOUSE</h3>
 <p><strong>Vigentes a partir del:</strong> 25 de septiembre de 2026</p>
 
 <h4>1. Aceptación</h4>
-<p>El uso de CaboSync (web o aplicación móvil) implica la aceptación plena de estos Términos y Condiciones. Si no está de acuerdo, deberá abstenerse de utilizar la plataforma.</p>
+<p>El uso de ID SOFTAWRE HOUSE (web o aplicación móvil) implica la aceptación plena de estos Términos y Condiciones. Si no está de acuerdo, deberá abstenerse de utilizar la plataforma.</p>
 
 <h4>2. Descripción del Servicio</h4>
-<p>CaboSync es una plataforma de gestión de asistencia, horas extras, faltas y personal, operada por ID SOFTWARE HOUSE, diseñada para empresas con múltiples obras y equipos en campo.</p>
+<p>ID SOFTAWRE HOUSE es una plataforma de gestión de asistencia, horas extras, faltas y personal, operada por ID SOFTWARE HOUSE, diseñada para empresas con múltiples obras y equipos en campo.</p>
 
 <h4>3. Usuarios y Roles</h4>
 <p>El acceso se otorga mediante roles: Administrador (acceso total), Contratista (gestión de sus empresas), Jefe de Obra/Seguridad (operativo), RH/Contabilidad (reportes).</p>
@@ -85,7 +85,7 @@ HTML;
 <p>Usted autoriza a ID SOFTWARE HOUSE a utilizar sus datos de manera <strong>anonimizada y agregada</strong> para fines de análisis estadístico, generación de reportes de productividad, investigación interna y mejora continua de la plataforma, sin que ello implique identificación individual.</p>
 
 <h4>5. Uso en Web y Aplicaciones Móviles</h4>
-<p>Estos términos aplican tanto al uso de CaboSync en navegadores web como en aplicaciones móviles (iOS/Android). El uso de geolocalización es obligatorio para auditoría de acciones administrativas.</p>
+<p>Estos términos aplican tanto al uso de ID SOFTAWRE HOUSE en navegadores web como en aplicaciones móviles (iOS/Android). El uso de geolocalización es obligatorio para auditoría de acciones administrativas.</p>
 
 <h4>6. Migración de Datos y Nuevas Funcionalidades</h4>
 <p>Usted autoriza expresamente a ID SOFTWARE HOUSE a <strong>migrar, transformar y adaptar sus datos</strong> hacia nuevas funcionalidades, módulos, versiones o desarrollos futuros de la empresa, manteniendo siempre la confidencialidad y seguridad de la información.</p>
@@ -99,7 +99,7 @@ HTML;
 </ul>
 
 <h4>8. Propiedad Intelectual</h4>
-<p>Todo el código, diseño, documentación y contenido de CaboSync es propiedad exclusiva de ID SOFTWARE HOUSE. Queda prohibida su reproducción total o parcial sin autorización expresa.</p>
+<p>Todo el código, diseño, documentación y contenido de ID SOFTAWRE HOUSE es propiedad exclusiva de ID SOFTWARE HOUSE. Queda prohibida su reproducción total o parcial sin autorización expresa.</p>
 
 <h4>9. Limitación de Responsabilidad</h4>
 <p>ID SOFTWARE HOUSE no será responsable por daños indirectos, lucro cesante o pérdida de datos derivados del uso indebido de la plataforma.</p>

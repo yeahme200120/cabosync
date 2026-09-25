@@ -142,7 +142,7 @@
             @include('legal._modal_aceptacion')
         @endif
     @endauth
-
+     @vite(['resources/js/legal.js'])
     @stack('scripts')
 </body>
 

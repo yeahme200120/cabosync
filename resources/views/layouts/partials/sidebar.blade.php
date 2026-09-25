@@ -147,12 +147,12 @@
         <small class="text-muted px-3 text-uppercase fw-bold" style="font-size: 0.7rem;">Legal</small>
     </li>
     <li class="nav-item">
-        <a href="{{ route('legal.aviso') }}" target="_blank" class="nav-link">
+        <a href="{{ route('legal_publico.aviso') }}" target="_blank" class="nav-link">
             <i class="bi bi-shield-check"></i> Aviso de Privacidad
         </a>
     </li>
     <li class="nav-item">
-        <a href="{{ route('legal.terminos') }}" target="_blank" class="nav-link">
+        <a href="{{ route('legal_publico.terminos') }}" target="_blank" class="nav-link">
             <i class="bi bi-file-earmark-text"></i> Términos y Condiciones
         </a>
     </li>
