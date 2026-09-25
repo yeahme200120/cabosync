@@ -157,7 +157,7 @@ Route::middleware(['auth'])->group(function () {
 // DESCARGA PÚBLICA (sin auth)
 // ============================================
 // LEGAL PÚBLICO
-Route::prefix('id_software_house_legal')->name('legal.')->group(function () {
+Route::prefix('id_software_house_legal')->name('legal_publico.')->group(function () {
     Route::get('/terminos', [LegalController::class, 'terminos'])->name('terminos');
     Route::get('/aviso',    [LegalController::class, 'aviso'])->name('aviso');
 });
