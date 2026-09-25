@@ -10,19 +10,6 @@ class BitacoraService
 {
     /**
      * Registra una acción con contexto completo.
-     *
-     * @param  string  $accion       Clave de la acción (ej. "asistencia.marcar_presente")
-     * @param  string  $descripcion  Descripción legible
-     * @param  array   $opciones     [
-     *     'tipo_accion'     => 'insert|update|delete|login|logout|view|otro',
-     *     'modelo_afectado' => 'App\Models\Empleado',
-     *     'modelo_id'       => 1,
-     *     'datos_antes'     => [...],
-     *     'datos_despues'   => [...],
-     *     'empresa_id'      => 1,
-     *     'usuario_id'      => 1,   // Si no se pasa, usa el autenticado
-     *     'geo'             => ['lat' => 19.4, 'lng' => -99.1, 'precision' => 50],
-     * ]
      */
     public static function registrar(
         string $accion,
@@ -31,23 +18,40 @@ class BitacoraService
     ): BitacoraAccion {
         $user = Auth::user();
 
+        // ¿Es acción pública? (sin usuario autenticado)
+        $esPublico = $user === null;
+
         // Detectar plataforma desde user agent
-        $userAgent = Request::userAgent() ?? '';
+        $userAgent  = Request::userAgent() ?? '';
         $plataforma = self::detectarPlataforma($userAgent);
 
-        // Geolocalización: puede venir desde el request (frontend la captura)
-        $latitud    = $opciones['geo']['lat'] ?? null;
-        $longitud   = $opciones['geo']['lng'] ?? null;
-        $precision  = $opciones['geo']['precision'] ?? null;
+        // Geolocalización
+        $latitud   = $opciones['geo']['lat'] ?? null;
+        $longitud  = $opciones['geo']['lng'] ?? null;
+        $precision = $opciones['geo']['precision'] ?? null;
 
-        // Empresa: primero la del request, luego la del usuario, luego null
+        // Marcar si es imprecisa
+        $precisionNum = is_numeric($precision) ? (float) $precision : null;
+        $esImprecisa  = $precisionNum !== null && $precisionNum > 500;
+
+        if ($esImprecisa) {
+            $descripcion .= ' [Ubicación aproximada ±' . round($precisionNum) . 'm]';
+        }
+
+        // Empresa
         $empresaId = $opciones['empresa_id']
             ?? $user?->empresa_id
             ?? null;
 
+        // Si es público y no se pasó descripción específica, agregar marca
+        if ($esPublico && !isset($opciones['descripcion_prefijo'])) {
+            $descripcion = '[PÚBLICO GENERAL] ' . $descripcion;
+        }
+
         return BitacoraAccion::create([
-            'usuario_id'      => $opciones['usuario_id'] ?? $user?->id,
+            'usuario_id'      => $opciones['usuario_id'] ?? $user?->id ?? null,
             'empresa_id'      => $empresaId,
+            'es_publico'      => $esPublico,
             'accion'          => $accion,
             'descripcion'     => $descripcion,
             'datos_antes'     => $opciones['datos_antes'] ?? null,
@@ -68,7 +72,7 @@ class BitacoraService
     }
 
     /**
-     * Registra un INSERT (creación).
+     * Registra un INSERT.
      */
     public static function insertar(
         string $accion,
@@ -87,7 +91,7 @@ class BitacoraService
     }
 
     /**
-     * Registra un UPDATE (con diff).
+     * Registra un UPDATE (con diff). Devuelve null si no hay cambios.
      */
     public static function actualizar(
         string $accion,
@@ -97,10 +101,10 @@ class BitacoraService
         array $datosAntes,
         array $datosDespues,
         array $opciones = []
-    ): BitacoraAccion {
+    ): ?BitacoraAccion {
         // Filtrar solo los campos que cambiaron
-        $antes    = [];
-        $despues  = [];
+        $antes   = [];
+        $despues = [];
 
         foreach ($datosDespues as $campo => $valorNuevo) {
             $valorViejo = $datosAntes[$campo] ?? null;
@@ -126,7 +130,7 @@ class BitacoraService
     }
 
     /**
-     * Registra un DELETE (eliminación).
+     * Registra un DELETE.
      */
     public static function eliminar(
         string $accion,

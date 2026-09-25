@@ -12,8 +12,11 @@ return new class extends Migration
             $table->id();
 
             // Usuario y empresa
-            $table->unsignedBigInteger('usuario_id');
+            $table->unsignedBigInteger('usuario_id')->nullable();
             $table->unsignedBigInteger('empresa_id')->nullable();
+
+            // Marca si la acción fue realizada sin autenticación (público general)
+            $table->boolean('es_publico')->default(false);
 
             // Acción
             $table->string('accion', 100);
@@ -54,6 +57,7 @@ return new class extends Migration
             $table->index(['tipo_accion'], 'bitacora_tipo_accion_idx');
             $table->index(['modelo_afectado', 'modelo_id'], 'bitacora_modelo_idx');
             $table->index(['usuario_id', 'created_at'], 'bitacora_usuario_fecha_idx');
+            $table->index(['es_publico'], 'bitacora_es_publico_idx');
         });
     }
 

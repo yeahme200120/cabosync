@@ -35,11 +35,11 @@
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-body">
                 <div class="row g-2 align-items-end">
-                    @if (auth()->user()->esAdministrador() && $empresas->count() > 0)
+                    @if (auth()->user()->esAdministrador() || auth()->user()->esContratista() && $empresas->count() > 0)
                         <div class="col-md-3">
                             <label class="form-label small fw-bold mb-1">Empresa</label>
                             <select id="filtroEmpresa" class="form-select form-select-sm">
-                                <option value="">Todas</option>
+                                <option value="" disabled>Todas</option>
                                 @foreach ($empresas as $emp)
                                     <option value="{{ $emp->id }}">{{ $emp->nombre }}</option>
                                 @endforeach

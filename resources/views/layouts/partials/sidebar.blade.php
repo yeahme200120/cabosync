@@ -28,7 +28,22 @@
     @endif
 
     {{-- CONCILIACIÓN --}}
-    @if (auth()->user()->tienePermiso('asistencia.conciliar'))
+    @php
+        $puedeVerConciliacion = false;
+        if (auth()->check()) {
+            $u = auth()->user();
+            // Admin, Contratista siempre pueden ver
+            if ($u->esAdministrador() || $u->esContratista()) {
+                $puedeVerConciliacion = true;
+            }
+            // Jefe de Obra con puede_conciliar activado
+            elseif ($u->esJefeObra() && $u->puede_conciliar) {
+                $puedeVerConciliacion = true;
+            }
+        }
+    @endphp
+
+    @if ($puedeVerConciliacion)
         <li class="nav-item">
             <a href="{{ route('conciliacion.index') }}"
                 class="nav-link {{ request()->routeIs('conciliacion.*') ? 'active' : '' }}">

@@ -635,6 +635,16 @@ class AsistenciaController extends Controller
     {
         $user = $request->user();
 
+        // =========================================================
+        // VALIDACIÓN: Solo Admin, Contratista y Jefe de Obra pueden justificar
+        // =========================================================
+        if (!$user->esAdministrador() && !$user->esContratista() && !$user->esJefeObra()) {
+            return response()->json([
+                'success' => false,
+                'error'   => 'No tienes permiso para justificar faltas.',
+            ], 403);
+        }
+
         $data = $request->validate([
             'empleado_id'     => 'required|exists:empleados,id',
             'fecha'           => 'required|date',
@@ -741,6 +751,14 @@ class AsistenciaController extends Controller
     public function quitarJustificacion(Request $request)
     {
         $user = $request->user();
+
+        // Validación: solo Admin, Contratista y Jefe de Obra pueden quitar justificaciones
+        if (!$user->esAdministrador() && !$user->esContratista() && !$user->esJefeObra()) {
+            return response()->json([
+                'success' => false,
+                'error'   => 'No tienes permiso para eliminar justificaciones.',
+            ], 403);
+        }
 
         $data = $request->validate([
             'empleado_id'     => 'required|exists:empleados,id',

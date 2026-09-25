@@ -13,6 +13,7 @@ class BitacoraAccion extends Model
     protected $fillable = [
         'usuario_id',
         'empresa_id',
+        'es_publico',
         'accion',
         'descripcion',
         'datos_antes',
@@ -37,6 +38,7 @@ class BitacoraAccion extends Model
         'created_at'    => 'datetime',
         'latitud'       => 'decimal:8',
         'longitud'      => 'decimal:8',
+        'es_publico'    => 'boolean',
     ];
 
     // ============================
@@ -68,6 +70,16 @@ class BitacoraAccion extends Model
         return $query->whereNotNull('latitud')->whereNotNull('longitud');
     }
 
+    public function scopePublicas($query)
+    {
+        return $query->where('es_publico', true);
+    }
+
+    public function scopeAutenticadas($query)
+    {
+        return $query->where('es_publico', false);
+    }
+
     // ============================
     // HELPERS
     // ============================
@@ -88,6 +100,11 @@ class BitacoraAccion extends Model
             return false;
         }
         return $this->datos_antes !== $this->datos_despues;
+    }
+
+    public function esPublico(): bool
+    {
+        return (bool) $this->es_publico;
     }
 
     // ============================

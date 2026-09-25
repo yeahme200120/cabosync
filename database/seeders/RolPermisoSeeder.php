@@ -85,6 +85,7 @@ class RolPermisoSeeder extends Seeder
             'jefe_obra' => [
                 'asistencia.tomar',
                 'asistencia.ver',
+                'asistencia.conciliar',
                 'asistencia.justificar',
                 'justificacion.subir',
                 'horas_extras.solicitar',
