@@ -156,12 +156,10 @@ Route::middleware(['auth'])->group(function () {
 // ============================================
 // DESCARGA PÚBLICA (sin auth)
 // ============================================
-// =========================================================
-// LEGAL — PÚBLICO (sin auth)
-// =========================================================
-Route::prefix('legal')->name('legal.')->group(function () {
-    Route::get('/terminos',   [LegalController::class, 'terminos'])->name('terminos');
-    Route::get('/aviso',      [LegalController::class, 'aviso'])->name('aviso');
+// LEGAL PÚBLICO
+Route::prefix('id_software_house_legal')->name('legal.')->group(function () {
+    Route::get('/terminos', [LegalController::class, 'terminos'])->name('terminos');
+    Route::get('/aviso',    [LegalController::class, 'aviso'])->name('aviso');
 });
 
 Route::get('/r/{token}',                  [ReporteController::class, 'descargaPublica'])->name('reportes.publico.descarga');
