@@ -7,15 +7,12 @@ use App\Models\AsistenciaFinal;
 use App\Models\BitacoraAccion;
 use App\Models\Empleado;
 use App\Models\Empresa;
-use App\Models\Obra;
 use App\Models\ReporteToken;
 use App\Services\BitacoraService;
 use App\Services\ReporteSemanalService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class ReporteController extends Controller
@@ -33,32 +30,26 @@ class ReporteController extends Controller
     // =========================================================
 
     /**
-     * Resuelve el empresa_id efectivo:
-     * - Si es Contratista/Jefe → fuerza su empresa.
-     * - Si es Admin y viene empresa_id → la usa.
-     * - Si es Admin y NO viene → toma la primera activa.
+     * Resuelve el empresa_id efectivo.
+     * Devuelve null si el Admin NO selecciona empresa (para que el reporte
+     * incluya TODAS las empresas).
      */
     protected function resolverEmpresaId($user, $empresaIdSolicitada): ?int
     {
+        // Contratista/Jefe: siempre su empresa
         if ($user->esContratista() || $user->esJefeObra()) {
             return $user->empresa_id;
         }
 
+        // Admin: si selecciona empresa, respetarla
         if (!empty($empresaIdSolicitada)) {
             return (int) $empresaIdSolicitada;
         }
 
-        // Admin sin filtro: primera empresa externa (o la primera activa)
-        return Empresa::where('tipo', 'externa')
-            ->where('estatus', 'activo')
-            ->orderBy('nombre')
-            ->value('id')
-            ?? Empresa::where('estatus', 'activo')->orderBy('nombre')->value('id');
+        // Admin sin filtro: null = todas las empresas
+        return null;
     }
 
-    /**
-     * Captura de headers de geo/device para bitácora.
-     */
     protected function opcionesBitacora(Request $request, ?int $empresaId = null): array
     {
         return [
@@ -91,16 +82,11 @@ class ReporteController extends Controller
 
         $empresaId = $this->resolverEmpresaId($user, $data['empresa_id'] ?? null);
 
-        if (!$empresaId) {
-            return response()->json(['success' => false, 'error' => 'No hay empresa configurada'], 422);
-        }
-
         try {
             $path = $tipo === 'pdf'
                 ? $this->reporteService->generarPdf($empresaId, $data['obra_id'] ?? null, $data['week'], $user->nombre)
                 : $this->reporteService->generarExcel($empresaId, $data['obra_id'] ?? null, $data['week'], $user->nombre);
 
-            // Bitácora con servicio nuevo
             BitacoraService::insertar(
                 'reporte.descargar_' . $tipo,
                 "Descarga de reporte {$tipo} - Semana {$data['week']}",
@@ -129,6 +115,7 @@ class ReporteController extends Controller
             return response()->download($rutaAbsoluta, $nombreArchivo, ['Content-Type' => $mime]);
 
         } catch (\Exception $e) {
+            \Log::error('Error ReporteController::descargar', ['exception' => $e]);
             return response()->json(['success' => false, 'error' => 'Error al generar: ' . $e->getMessage()], 500);
         }
     }
@@ -151,10 +138,6 @@ class ReporteController extends Controller
         }
 
         $empresaId = $this->resolverEmpresaId($user, $data['empresa_id'] ?? null);
-
-        if (!$empresaId) {
-            return response()->json(['success' => false, 'error' => 'No hay empresa configurada'], 422);
-        }
 
         try {
             $path = $tipo === 'pdf'
@@ -196,17 +179,18 @@ class ReporteController extends Controller
 
         $empresaId = $this->resolverEmpresaId($user, $data['empresa_id'] ?? null);
 
-        if (!$empresaId) {
-            return response()->json(['success' => false, 'error' => 'No hay empresa configurada'], 422);
-        }
-
         try {
             $pdfPath   = $this->reporteService->generarPdf($empresaId, $data['obra_id'] ?? null, $data['week'], $user->nombre);
             $excelPath = $this->reporteService->generarExcel($empresaId, $data['obra_id'] ?? null, $data['week'], $user->nombre);
 
+            // Si empresaId es null, usar 0 para el registro del token (o la primera empresa real)
+            $empresaParaToken = $empresaId ?? Empresa::whereHas('empleados', function ($q) {
+                $q->where('estatus', 'activo');
+            })->value('id') ?? Empresa::value('id');
+
             $token = ReporteToken::create([
                 'token'      => Str::random(48),
-                'empresa_id' => $empresaId,
+                'empresa_id' => $empresaParaToken,
                 'obra_id'    => $data['obra_id'] ?? null,
                 'week'       => $data['week'],
                 'pdf_path'   => $pdfPath,
@@ -258,10 +242,6 @@ class ReporteController extends Controller
 
         $empresaId = $this->resolverEmpresaId($user, $data['empresa_id'] ?? null);
 
-        if (!$empresaId) {
-            return response()->json(['success' => false, 'error' => 'No hay empresa configurada'], 422);
-        }
-
         $destinatarios = array_filter(array_map('trim', preg_split('/[,;]/', $data['destinatarios'])));
         $cc = !empty($data['cc']) ? array_filter(array_map('trim', preg_split('/[,;]/', $data['cc']))) : [];
 
@@ -279,7 +259,7 @@ class ReporteController extends Controller
             $pdfPath   = $this->reporteService->generarPdf($empresaId, $data['obra_id'] ?? null, $data['week'], $user->nombre);
             $excelPath = $this->reporteService->generarExcel($empresaId, $data['obra_id'] ?? null, $data['week'], $user->nombre);
 
-            $empresa      = Empresa::find($empresaId);
+            $empresa      = $empresaId ? Empresa::find($empresaId) : null;
             $semana       = $this->reporteService->obtenerDatos($empresaId, $data['obra_id'] ?? null, $data['week'])['semana'];
             $semanaTexto  = Carbon::parse($semana['inicio'])->format('d/m/Y') . ' al ' . Carbon::parse($semana['fin'])->format('d/m/Y');
 
@@ -288,7 +268,7 @@ class ReporteController extends Controller
             Mail::to($destinatarios)
                 ->cc($cc)
                 ->send(new ReporteSemanalMail(
-                    empresaNombre: $empresa->nombre ?? 'N/D',
+                    empresaNombre: $empresa?->nombre ?? 'Todas las empresas',
                     semanaTexto: $semanaTexto,
                     mensajePersonalizado: $mensaje,
                     pdfPath: $pdfPath,
@@ -297,7 +277,12 @@ class ReporteController extends Controller
                 ));
 
             // Marcar enviado a RH
-            $empleadoIds = Empleado::where('empresa_id', $empresaId)->pluck('id');
+            $empleadoIdsQuery = Empleado::query();
+            if ($empresaId) {
+                $empleadoIdsQuery->where('empresa_id', $empresaId);
+            }
+            $empleadoIds = $empleadoIdsQuery->pluck('id');
+
             AsistenciaFinal::whereIn('empleado_id', $empleadoIds)
                 ->whereBetween('fecha', [$semana['inicio'], $semana['fin']])
                 ->update([
@@ -305,22 +290,17 @@ class ReporteController extends Controller
                     'fecha_envio_rh' => now(),
                 ]);
 
-            BitacoraService::actualizar(
+            BitacoraService::insertar(
                 'reporte.enviar_correo',
                 "Reporte enviado a: " . implode(', ', $destinatarios) . " - Semana {$data['week']}",
                 'App\Models\AsistenciaFinal',
                 0,
-                ['enviado_rh' => false],
-                ['enviado_rh' => true],
-                array_merge($this->opcionesBitacora($request, $empresaId), [
-                    'datos_antes'   => ['enviado_rh' => false],
-                    'datos_despues' => [
-                        'enviado_rh'      => true,
-                        'destinatarios'   => $destinatarios,
-                        'cc'              => $cc,
-                        'semana'          => $data['week'],
-                    ],
-                ])
+                [
+                    'destinatarios' => $destinatarios,
+                    'cc'            => $cc,
+                    'semana'        => $data['week'],
+                ],
+                $this->opcionesBitacora($request, $empresaId)
             );
 
             return response()->json([
@@ -335,12 +315,11 @@ class ReporteController extends Controller
     }
 
     // =========================================================
-    // DESCARGA PÚBLICA (sin auth)
+    // DESCARGA PÚBLICA
     // =========================================================
     public function descargaPublica(string $token)
     {
         $reporteToken = ReporteToken::where('token', $token)->firstOrFail();
-
         return view('reportes.publico.descarga', ['token' => $reporteToken]);
     }
 
@@ -365,7 +344,6 @@ class ReporteController extends Controller
 
         $reporteToken->registrarDescarga();
 
-        // Bitácora sin usuario autenticado (descarga pública)
         BitacoraService::registrar(
             'reporte.descarga_publica',
             "Descarga pública del reporte {$tipo} - Semana {$reporteToken->week}",

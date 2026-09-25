@@ -14,7 +14,6 @@
             padding: 0;
         }
 
-        /* ENCABEZADO */
         .header {
             width: 100%;
             border-bottom: 3px solid #1E5180;
@@ -25,11 +24,7 @@
         .header td { vertical-align: middle; padding: 0; }
 
         .logo-cell { width: 120px; }
-        .logo-cell img {
-            max-height: 60px;
-            max-width: 120px;
-            height: auto;
-        }
+        .logo-cell img { max-height: 60px; max-width: 120px; height: auto; }
 
         .titulo-cell { text-align: center; }
         .titulo-principal {
@@ -39,13 +34,8 @@
             margin: 0;
             letter-spacing: 1px;
         }
-        .subtitulo {
-            font-size: 9pt;
-            color: #666;
-            margin: 2px 0 0 0;
-        }
+        .subtitulo { font-size: 9pt; color: #666; margin: 2px 0 0 0; }
 
-        /* INFO BOX */
         .info-box {
             background: #f4f6f9;
             border-left: 3px solid #F28C28;
@@ -58,12 +48,7 @@
         .info-box td { padding: 1px 0; }
         .info-label { color: #666; font-weight: bold; width: 90px; }
 
-        /* TABLA */
-        .tabla {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 7.5pt;
-        }
+        .tabla { width: 100%; border-collapse: collapse; font-size: 7.5pt; }
 
         .tabla thead th {
             background: #1E5180;
@@ -75,9 +60,10 @@
             font-size: 7pt;
         }
 
-        .tabla thead th.col-empleado { text-align: left; padding-left: 8px; width: 22%; }
-        .tabla thead th.col-puesto   { text-align: left; padding-left: 6px; width: 13%; }
-        .tabla thead th.col-dia      { width: 6.5%; }
+        .tabla thead th.col-empleado { text-align: left; padding-left: 8px; width: {{ $multi_empresa ? '18%' : '22%' }}; }
+        .tabla thead th.col-empresa { text-align: left; padding-left: 6px; width: 12%; }
+        .tabla thead th.col-puesto   { text-align: left; padding-left: 6px; width: {{ $multi_empresa ? '10%' : '13%' }}; }
+        .tabla thead th.col-dia      { width: 5.5%; }
 
         .tabla tbody td {
             padding: 4px 3px;
@@ -91,22 +77,21 @@
             font-weight: bold;
             color: #1E5180;
         }
-        .tabla tbody td.col-puesto {
+        .tabla tbody td.col-empresa {
             text-align: left;
             padding-left: 6px;
-            font-size: 7pt;
+            font-size: 6.5pt;
+            color: #666;
         }
+        .tabla tbody td.col-puesto { text-align: left; padding-left: 6px; font-size: 7pt; }
 
-        /* ESTADOS */
         .estado-asistencia   { background: #d4edda; color: #155724; font-weight: bold; }
         .estado-justificada  { background: #fff3cd; color: #856404; font-weight: bold; }
         .estado-falta        { background: #f8d7da; color: #721c24; font-weight: bold; }
         .estado-sin-registro { background: #f8f9fa; color: #adb5bd; }
 
-        /* FILAS ALTERNAS */
         .tabla tbody tr:nth-child(even) { background: #fafbfc; }
 
-        /* TOTALES */
         .totales-box {
             margin-top: 10px;
             background: #1E5180;
@@ -119,19 +104,9 @@
         .totales-label { color: #F28C28; font-weight: bold; }
         .totales-valor { font-weight: bold; }
 
-        /* FIRMA */
-        .firma-box {
-            margin-top: 20px;
-            text-align: center;
-            font-size: 8pt;
-        }
-        .firma-linea {
-            width: 250px;
-            border-top: 1px solid #333;
-            margin: 30px auto 3px auto;
-        }
+        .firma-box { margin-top: 20px; text-align: center; font-size: 8pt; }
+        .firma-linea { width: 250px; border-top: 1px solid #333; margin: 30px auto 3px auto; }
 
-        /* FOOTER */
         .footer {
             text-align: center;
             font-size: 7pt;
@@ -144,7 +119,6 @@
 </head>
 <body>
 
-    {{-- ENCABEZADO --}}
     <div class="header">
         <table>
             <tr>
@@ -169,12 +143,11 @@
         </table>
     </div>
 
-    {{-- INFO BOX --}}
     <div class="info-box">
         <table>
             <tr>
                 <td class="info-label">Empresa:</td>
-                <td>{{ $empresa->nombre ?? 'N/D' }}</td>
+                <td>{{ $empresa->nombre ?? 'TODAS LAS EMPRESAS' }}</td>
                 <td class="info-label">Semana:</td>
                 <td>{{ $semana['inicio'] }} al {{ $semana['fin'] }} ({{ $semana['week'] }})</td>
             </tr>
@@ -187,11 +160,13 @@
         </table>
     </div>
 
-    {{-- TABLA PRINCIPAL --}}
     <table class="tabla">
         <thead>
             <tr>
                 <th class="col-empleado">Empleado</th>
+                @if($multi_empresa)
+                    <th class="col-empresa">Empresa</th>
+                @endif
                 <th class="col-puesto">Puesto</th>
                 @foreach($semana['fechas'] as $fecha => $letra)
                     <th class="col-dia">
@@ -210,6 +185,9 @@
             @foreach($filas as $fila)
                 <tr>
                     <td class="col-empleado">{{ $fila['empleado']->nombre_completo }}</td>
+                    @if($multi_empresa)
+                        <td class="col-empresa">{{ $fila['empresa'] }}</td>
+                    @endif
                     <td class="col-puesto">{{ $fila['empleado']->puesto_cargo }}</td>
 
                     @foreach($semana['fechas'] as $fecha => $letra)
@@ -243,7 +221,6 @@
         </tbody>
     </table>
 
-    {{-- TOTALES --}}
     <div class="totales-box">
         <table>
             <tr>
@@ -257,14 +234,12 @@
         </table>
     </div>
 
-    {{-- FIRMA --}}
     <div class="firma-box">
         <div class="firma-linea"></div>
         <div><strong>{{ $responsable ?? 'Responsable de Obra' }}</strong></div>
         <div style="color: #666;">Firma del responsable</div>
     </div>
 
-    {{-- FOOTER --}}
     <div class="footer">
         Documento generado por CaboSync - ID SOFTWARE HOUSE | Cuautla, Morelos, México
         <br>

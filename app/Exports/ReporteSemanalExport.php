@@ -19,14 +19,14 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 
 class ReporteSemanalExport implements FromArray, WithStyles, WithColumnWidths, WithTitle
 {
-    protected int $empresaId;
+    protected ?int $empresaId;
     protected ?int $obraId;
     protected string $week;
     protected ?string $responsable;
     protected array $semana;
     protected array $datos;
 
-    public function __construct(int $empresaId, ?int $obraId, string $week, ?string $responsable = null)
+    public function __construct(?int $empresaId, ?int $obraId, string $week, ?string $responsable = null)
     {
         $this->empresaId   = $empresaId;
         $this->obraId      = $obraId;
@@ -89,7 +89,12 @@ class ReporteSemanalExport implements FromArray, WithStyles, WithColumnWidths, W
         $filas[] = [
             'TOTALES',
             '',
-            '', '', '', '', '', '', // días vacíos
+            '',
+            '',
+            '',
+            '',
+            '',
+            '', // días vacíos
             '',
             '',
             $this->datos['totales']['presentes'],
@@ -151,8 +156,17 @@ class ReporteSemanalExport implements FromArray, WithStyles, WithColumnWidths, W
         return [
             'A' => 35, // Empleado
             'B' => 20, // Puesto
-            'C' => 6, 'D' => 6, 'E' => 6, 'F' => 6, 'G' => 6, 'H' => 6, // Días
-            'I' => 11, 'J' => 9, 'K' => 13, 'L' => 15, 'M' => 13, // Totales
+            'C' => 6,
+            'D' => 6,
+            'E' => 6,
+            'F' => 6,
+            'G' => 6,
+            'H' => 6, // Días
+            'I' => 11,
+            'J' => 9,
+            'K' => 13,
+            'L' => 15,
+            'M' => 13, // Totales
         ];
     }
 
@@ -170,8 +184,11 @@ class ReporteSemanalExport implements FromArray, WithStyles, WithColumnWidths, W
         $fechasSemana = $this->semana['fechas'];
 
         $empleadosQuery = Empleado::with(['empresa', 'obra'])
-            ->where('empresa_id', $this->empresaId)
             ->where('estatus', 'activo');
+
+        if ($this->empresaId) {  // ⬅️ Solo filtra si no es null
+            $empleadosQuery->where('empresa_id', $this->empresaId);
+        }
 
         if ($this->obraId) $empleadosQuery->where('obra_id', $this->obraId);
 
@@ -181,7 +198,7 @@ class ReporteSemanalExport implements FromArray, WithStyles, WithColumnWidths, W
         $finales = AsistenciaFinal::whereIn('empleado_id', $empleadoIds)
             ->whereIn('fecha', array_keys($fechasSemana))
             ->get()
-            ->keyBy(fn ($f) => $f->empleado_id . '_' . $f->fecha->format('Y-m-d'));
+            ->keyBy(fn($f) => $f->empleado_id . '_' . $f->fecha->format('Y-m-d'));
 
         $filas = [];
         $totales = ['presentes' => 0, 'faltas' => 0, 'justificadas' => 0, 'dias_descuento' => 0, 'horas_extra' => 0];

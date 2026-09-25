@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Asistencia;
 use App\Models\AsistenciaFinal;
 use App\Models\Empleado;
 use App\Models\Empresa;
@@ -15,21 +16,30 @@ use Mpdf\Config\FontVariables;
 class ReporteSemanalService
 {
     /**
-     * Genera los datos del reporte (empleados + totales).
+     * Obtiene los datos del reporte.
+     * Acepta empresaId nullable: si es null, incluye TODAS las empresas.
      */
-    public function obtenerDatos(int $empresaId, ?int $obraId, string $week): array
+    public function obtenerDatos(?int $empresaId, ?int $obraId, string $week): array
     {
-        $semana = $this->calcularSemanaDesdeWeek($week);
+        $semana       = $this->calcularSemanaDesdeWeek($week);
         $fechasSemana = $semana['fechas'];
 
-        // Obtener empleados
+        // =========================================================
+        // Query de empleados (SIN filtrar por empresa si es Admin)
+        // =========================================================
         $empleadosQuery = Empleado::with(['empresa', 'obra'])
-            ->where('empresa_id', $empresaId)
             ->where('estatus', 'activo');
 
-        if ($obraId) $empleadosQuery->where('obra_id', $obraId);
+        if ($empresaId) {
+            $empleadosQuery->where('empresa_id', $empresaId);
+        }
+
+        if ($obraId) {
+            $empleadosQuery->where('obra_id', $obraId);
+        }
 
         $empleados = $empleadosQuery
+            ->orderBy('empresa_id')
             ->orderBy('puesto_cargo')
             ->orderBy('nombre')
             ->get();
@@ -41,6 +51,13 @@ class ReporteSemanalService
             ->whereIn('fecha', array_keys($fechasSemana))
             ->get()
             ->keyBy(fn ($f) => $f->empleado_id . '_' . $f->fecha->format('Y-m-d'));
+
+        // Horas extra por empleado/día (agrupadas para eficiencia)
+        $horasExtra = Asistencia::whereIn('empleado_id', $empleadoIds)
+            ->whereIn('fecha', array_keys($fechasSemana))
+            ->where('horas_extra', '>', 0)
+            ->get()
+            ->groupBy('empleado_id');
 
         // Armar filas
         $filas = [];
@@ -55,26 +72,30 @@ class ReporteSemanalService
 
         foreach ($empleados as $emp) {
             $fila = [
-                'empleado'     => $emp,
-                'dias'         => [],
-                'presentes'    => 0,
-                'faltas'       => 0,
-                'justificadas' => 0,
+                'empleado'       => $emp,
+                'empresa'        => $emp->empresa?->nombre ?? 'N/D',
+                'dias'           => [],
+                'presentes'      => 0,
+                'faltas'         => 0,
+                'justificadas'   => 0,
                 'dias_descuento' => 0,
-                'horas_extra'  => 0,
+                'horas_extra'    => 0,
             ];
 
-            foreach (array_keys($fechasSemana) as $fecha) {
-                $key = $emp->id . '_' . $fecha;
-                $final = $finales->get($key);
+            $horasExtraEmpleado = $horasExtra->get($emp->id, collect())->keyBy(
+                fn ($h) => $h->fecha->format('Y-m-d')
+            );
 
+            foreach (array_keys($fechasSemana) as $fecha) {
+                $final = $finales->get($emp->id . '_' . $fecha);
                 $estado = $final?->estado_final;
-                $horasExtra = $this->obtenerHorasExtraEmpleadoDia($emp->id, $fecha);
-                $fila['horas_extra'] += $horasExtra;
+                $horas = (float) ($horasExtraEmpleado->get($fecha)?->horas_extra ?? 0);
+
+                $fila['horas_extra'] += $horas;
 
                 $fila['dias'][$fecha] = [
                     'estado'      => $estado,
-                    'horas_extra' => $horasExtra,
+                    'horas_extra' => $horas,
                 ];
 
                 switch ($estado) {
@@ -103,23 +124,24 @@ class ReporteSemanalService
         }
 
         // Datos de la empresa y obra
-        $empresa = Empresa::find($empresaId);
+        $empresa = $empresaId ? Empresa::find($empresaId) : null;
         $obra    = $obraId ? Obra::find($obraId) : null;
 
         return [
-            'empresa'    => $empresa,
-            'obra'       => $obra,
-            'semana'     => $semana,
-            'filas'      => $filas,
-            'totales'    => $totales,
-            'total_empleados' => count($filas),
+            'empresa'          => $empresa,
+            'obra'             => $obra,
+            'semana'           => $semana,
+            'filas'            => $filas,
+            'totales'          => $totales,
+            'total_empleados'  => count($filas),
+            'multi_empresa'    => $empresaId === null, // flag para el PDF
         ];
     }
 
     /**
-     * Genera y guarda el PDF. Devuelve la ruta relativa.
+     * Genera y guarda el PDF. Acepta empresaId nullable.
      */
-    public function generarPdf(int $empresaId, ?int $obraId, string $week, ?string $responsable = null): string
+    public function generarPdf(?int $empresaId, ?int $obraId, string $week, ?string $responsable = null): string
     {
         $datos = $this->obtenerDatos($empresaId, $obraId, $week);
 
@@ -128,16 +150,15 @@ class ReporteSemanalService
             'generado_en' => now(),
         ]))->render();
 
-        // Configurar mPDF
         $defaultConfig = (new ConfigVariables())->getDefaults();
-        $fontDirs = $defaultConfig['fontDir'];
+        $fontDirs      = $defaultConfig['fontDir'];
 
         $defaultFontConfig = (new FontVariables())->getDefaults();
-        $fontData = $defaultFontConfig['fontdata'];
+        $fontData          = $defaultFontConfig['fontdata'];
 
         $mpdf = new Mpdf([
             'mode'          => 'utf-8',
-            'format'        => 'A4-L', // Horizontal
+            'format'        => 'A4-L',
             'margin_left'   => 10,
             'margin_right'  => 10,
             'margin_top'    => 25,
@@ -149,28 +170,24 @@ class ReporteSemanalService
             'default_font'  => 'dejavusans',
         ]);
 
-        // Marca de agua
         $mpdf->SetWatermarkText('CABOSYNC');
-        $mpdf->showWatermarkText = true;
-        $mpdf->watermark_font = 'DejaVuSans';
-        $mpdf->watermarkTextAlpha = 0.08;
+        $mpdf->showWatermarkText    = true;
+        $mpdf->watermark_font       = 'DejaVuSans';
+        $mpdf->watermarkTextAlpha   = 0.08;
 
-        // Protección: sin impresión, sin copiar todo (solo copiar)
         $mpdf->SetProtection(['copy'], '', 'CaboSyncID2026');
 
-        // Metadatos
         $mpdf->SetTitle('Reporte Semanal de Asistencia - CaboSync');
         $mpdf->SetAuthor('CaboSync - ID SOFTWARE HOUSE');
         $mpdf->SetCreator('CaboSync');
 
-        // Escribir HTML
         $mpdf->WriteHTML($html);
 
-        // Guardar
-        $rutaRelativa = "reportes/{$empresaId}/semana-{$week}/reporte-{$week}.pdf";
+        // Ruta: si no hay empresa, usar "todas"
+        $carpetaEmpresa = $empresaId ?? 'todas';
+        $rutaRelativa = "reportes/{$carpetaEmpresa}/semana-{$week}/reporte-{$week}.pdf";
         $rutaAbsoluta = storage_path('app/public/' . $rutaRelativa);
 
-        // Asegurar directorio
         @mkdir(dirname($rutaAbsoluta), 0755, true);
 
         $mpdf->Output($rutaAbsoluta, \Mpdf\Output\Destination::FILE);
@@ -179,14 +196,14 @@ class ReporteSemanalService
     }
 
     /**
-     * Genera y guarda el Excel. Devuelve la ruta relativa.
+     * Genera y guarda el Excel. Acepta empresaId nullable.
      */
-    public function generarExcel(int $empresaId, ?int $obraId, string $week, ?string $responsable = null): string
+    public function generarExcel(?int $empresaId, ?int $obraId, string $week, ?string $responsable = null): string
     {
-        $rutaRelativa = "reportes/{$empresaId}/semana-{$week}/reporte-{$week}.xlsx";
+        $carpetaEmpresa = $empresaId ?? 'todas';
+        $rutaRelativa = "reportes/{$carpetaEmpresa}/semana-{$week}/reporte-{$week}.xlsx";
         $rutaAbsoluta = storage_path('app/public/' . $rutaRelativa);
 
-        // Asegurar directorio
         @mkdir(dirname($rutaAbsoluta), 0755, true);
 
         \Maatwebsite\Excel\Facades\Excel::store(
@@ -198,21 +215,6 @@ class ReporteSemanalService
         return $rutaRelativa;
     }
 
-    /**
-     * Obtiene las horas extra de un empleado en una fecha.
-     */
-    protected function obtenerHorasExtraEmpleadoDia(int $empleadoId, string $fecha): float
-    {
-        $suma = \App\Models\Asistencia::where('empleado_id', $empleadoId)
-            ->where('fecha', $fecha)
-            ->sum('horas_extra');
-
-        return (float) $suma;
-    }
-
-    /**
-     * Calcula la semana (Lun-Sáb) desde un input type="week" (ej. "2026-W39").
-     */
     protected function calcularSemanaDesdeWeek(string $weekInput): array
     {
         if (!preg_match('/^(\d{4})-W(\d{1,2})$/', $weekInput, $m)) {
