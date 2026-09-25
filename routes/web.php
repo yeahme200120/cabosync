@@ -5,6 +5,7 @@ use App\Http\Controllers\ConciliacionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EmpleadoController;
 use App\Http\Controllers\ReporteController;
+use App\Http\Controllers\UsuarioController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
@@ -78,6 +79,27 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/blob/{tipo}',      [ReporteController::class, 'obtenerBlob'])->name('blob');
         Route::post('/generar-link',    [ReporteController::class, 'generarLink'])->name('generarLink');
         Route::post('/enviar-correo',   [ReporteController::class, 'enviarCorreo'])->name('enviarCorreo');
+    });
+
+    // ============================================
+    // MÓDULO USUARIOS
+    // ============================================
+    Route::prefix('usuarios')->name('usuarios.')->group(function () {
+        Route::get('/',                    [UsuarioController::class, 'index'])->name('index');
+        Route::post('/',                   [UsuarioController::class, 'store'])->name('store');
+        Route::get('/plantilla',           [UsuarioController::class, 'descargarPlantilla'])->name('plantilla');
+        Route::get('/plantilla-excel',     [UsuarioController::class, 'descargarPlantillaExcel'])->name('plantillaExcel');
+        Route::post('/importar',           [UsuarioController::class, 'importar'])->name('importar');
+        Route::post('/importar-sql',       [UsuarioController::class, 'importarSQL'])->name('importarSQL');
+        Route::post('/dejar-impersonar',   [UsuarioController::class, 'dejarImpersonar'])->name('dejarImpersonar');
+
+        Route::get('/{id}',                [UsuarioController::class, 'mostrar'])->name('mostrar');
+        Route::put('/{id}',                [UsuarioController::class, 'update'])->name('update');
+        Route::delete('/{id}',             [UsuarioController::class, 'destroy'])->name('destroy');
+        Route::get('/{id}/card',           [UsuarioController::class, 'card'])->name('card');
+        Route::post('/{id}/desactivar',    [UsuarioController::class, 'desactivar'])->name('desactivar');
+        Route::post('/{id}/reset-password', [UsuarioController::class, 'resetPassword'])->name('resetPassword');
+        Route::post('/{id}/impersonar',    [UsuarioController::class, 'impersonar'])->name('impersonar');
     });
 });
 

@@ -14,7 +14,7 @@
     <link href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css" rel="stylesheet">
 
     {{-- 🎨 CSS GLOBAL CABOSYNC (Vite) --}}
-    @vite(['resources/css/app.css', 'resources/js/app.js','resources/js/geo.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/geo.js'])
 
     @stack('styles')
 </head>
@@ -51,7 +51,20 @@
             @endauth
         </div>
     </nav>
-
+    @if (session('impersonate_admin_id'))
+        <div class="alert alert-warning mb-0 rounded-0 d-flex justify-content-between align-items-center">
+            <div>
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <strong>Estás impersonando a {{ auth()->user()->nombre }}</strong>
+            </div>
+            <form method="POST" action="{{ route('usuarios.dejarImpersonar') }}">
+                @csrf
+                <button type="submit" class="btn btn-sm btn-dark">
+                    <i class="bi bi-box-arrow-left"></i> Volver a mi cuenta
+                </button>
+            </form>
+        </div>
+    @endif
     <div class="container-fluid">
         <div class="row">
             <div class="col-md-3 col-lg-2 d-none d-md-block sidebar-cabosync p-0">

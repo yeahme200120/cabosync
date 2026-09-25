@@ -84,10 +84,21 @@
         <small class="text-muted px-3 text-uppercase fw-bold" style="font-size: 0.7rem;">Sistema</small>
     </li>
 
-    {{-- USUARIOS (solo admin) --}}
-    @if (auth()->user()->tienePermiso('usuarios.ver'))
+    {{-- USUARIOS --}}
+    @php
+        $puedeVerUsuarios = false;
+        if (auth()->check()) {
+            $u = auth()->user();
+            if ($u->esAdministrador() || $u->esContratista()) {
+                $puedeVerUsuarios = true;
+            }
+        }
+    @endphp
+
+    @if ($puedeVerUsuarios)
         <li class="nav-item">
-            <a class="nav-link" href="#">
+            <a href="{{ route('usuarios.index') }}"
+                class="nav-link {{ request()->routeIs('usuarios.*') ? 'active' : '' }}">
                 <i class="bi bi-person-badge"></i> Usuarios
             </a>
         </li>
