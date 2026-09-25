@@ -14,6 +14,7 @@ return new class extends Migration
             $table->unsignedBigInteger('obra_id')->nullable();
             $table->unsignedBigInteger('rol_id')->nullable();
             $table->string('curp_dni', 50)->nullable();
+            $table->string('foto', 255)->nullable();
             $table->string('nombre', 100);
             $table->string('apellido', 100);
             $table->string('puesto_cargo', 100);

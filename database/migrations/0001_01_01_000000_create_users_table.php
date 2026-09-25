@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('password');
             $table->enum('estatus', ['activo', 'inactivo'])->default('activo');
+            $table->boolean('puede_conciliar')->default(false);
             $table->rememberToken();
             $table->timestamps();
         });

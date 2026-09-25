@@ -1,0 +1,33 @@
+/* ============================================================
+   CABOSYNC - MÓDULO REPORTES
+   ============================================================ */
+
+#botonesEnvioReporte {
+    border-left: 4px solid #28a745;
+}
+
+#botonesEnvioReporte h6 {
+    font-weight: 700;
+}
+
+#botonesEnvioReporte .btn {
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+#modalEnviarCorreo .modal-header {
+    background: #dc3545;
+}
+
+#modalEnviarCorreo .form-label {
+    font-size: 0.75rem;
+    color: #555;
+    letter-spacing: 0.5px;
+}
+
+@media (max-width: 767px) {
+    #botonesEnvioReporte .btn {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.6rem;
+    }
+}

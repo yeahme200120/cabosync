@@ -15,7 +15,9 @@ class DatabaseSeeder extends Seeder
             EmpresaSeeder::class,
             ObraSeeder::class,
             UserSeeder::class,
+            EmpleadoSeeder::class,
             ConfiguracionSistemaSeeder::class,
+            TestAsistenciaSeeder::class,
         ]);
     }
 }

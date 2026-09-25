@@ -1,14 +1,21 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
+import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
     plugins: [
         laravel({
             input: [
-                'resources/sass/app.scss',
+                'resources/css/app.css',
+                'resources/css/pase_lista.css',
+                'resources/css/conciliacion.css',
+                'resources/css/reportes.css',
                 'resources/js/app.js',
+                'resources/js/reportes.js',
+                'resources/js/geo.js',
             ],
             refresh: true,
         }),
+        tailwindcss(),
     ],
 });

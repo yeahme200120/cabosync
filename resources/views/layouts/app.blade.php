@@ -14,7 +14,7 @@
     <link href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css" rel="stylesheet">
 
     {{-- 🎨 CSS GLOBAL CABOSYNC (Vite) --}}
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js','resources/js/geo.js'])
 
     @stack('styles')
 </head>

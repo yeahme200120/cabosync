@@ -8,57 +8,60 @@
     </li>
 
     {{-- EMPLEADOS --}}
-    @if(auth()->user()->tienePermiso('empleados.crear') || auth()->user()->tienePermiso('empleados.expediente'))
-    <li class="nav-item">
-        <a class="nav-link {{ request()->routeIs('empleados.*') ? 'active' : '' }}" href="{{ route('empleados.index') }}">
-            <i class="bi bi-people-fill"></i> Empleados
-        </a>
-    </li>
+    @if (auth()->user()->tienePermiso('empleados.crear') || auth()->user()->tienePermiso('empleados.expediente'))
+        <li class="nav-item">
+            <a class="nav-link {{ request()->routeIs('empleados.*') ? 'active' : '' }}"
+                href="{{ route('empleados.index') }}">
+                <i class="bi bi-people-fill"></i> Empleados
+            </a>
+        </li>
     @endif
 
     {{-- PASE DE LISTA --}}
-    @if(auth()->user()->tienePermiso('asistencia.tomar'))
-    <li class="nav-item">
-        <a class="nav-link {{ request()->routeIs('asistencia.*') ? 'active' : '' }}" href="#">
-            <i class="bi bi-clipboard-check"></i> Pase de Lista
-        </a>
-    </li>
+    @if (auth()->user()->tienePermiso('asistencia.tomar'))
+        <li class="nav-item">
+            <a class="nav-link {{ request()->routeIs('asistencia.*') ? 'active' : '' }}"
+                href="{{ route('asistencia.index') }}">
+                <i class="bi bi-clipboard-check"></i> Pase de Lista
+            </a>
+        </li>
     @endif
 
     {{-- CONCILIACIÓN --}}
-    @if(auth()->user()->tienePermiso('asistencia.conciliar'))
-    <li class="nav-item">
-        <a class="nav-link" href="#">
-            <i class="bi bi-shuffle"></i> Conciliación
-        </a>
-    </li>
+    @if (auth()->user()->tienePermiso('asistencia.conciliar'))
+        <li class="nav-item">
+            <a href="{{ route('conciliacion.index') }}"
+                class="nav-link {{ request()->routeIs('conciliacion.*') ? 'active' : '' }}">
+                <i class="bi bi-shuffle"></i> Conciliación
+            </a>
+        </li>
     @endif
 
     {{-- HORAS EXTRAS --}}
-    @if(auth()->user()->tienePermiso('horas_extras.ver'))
-    <li class="nav-item">
-        <a class="nav-link" href="#">
-            <i class="bi bi-clock-history"></i> Horas Extras
-        </a>
-    </li>
+    @if (auth()->user()->tienePermiso('horas_extras.ver'))
+        <li class="nav-item">
+            <a class="nav-link" href="#">
+                <i class="bi bi-clock-history"></i> Horas Extras
+            </a>
+        </li>
     @endif
 
     {{-- REPORTES --}}
-    @if(auth()->user()->tienePermiso('reportes.ver'))
-    <li class="nav-item">
-        <a class="nav-link" href="#">
-            <i class="bi bi-file-earmark-bar-graph"></i> Reportes
-        </a>
-    </li>
+    @if (auth()->user()->tienePermiso('reportes.ver'))
+        <li class="nav-item">
+            <a class="nav-link" href="#">
+                <i class="bi bi-file-earmark-bar-graph"></i> Reportes
+            </a>
+        </li>
     @endif
 
     {{-- EMPRESAS --}}
-    @if(auth()->user()->tienePermiso('empresas.ver'))
-    <li class="nav-item">
-        <a class="nav-link" href="#">
-            <i class="bi bi-building"></i> Empresas
-        </a>
-    </li>
+    @if (auth()->user()->tienePermiso('empresas.ver'))
+        <li class="nav-item">
+            <a class="nav-link" href="#">
+                <i class="bi bi-building"></i> Empresas
+            </a>
+        </li>
     @endif
 
     {{-- SEPARADOR --}}
@@ -67,30 +70,30 @@
     </li>
 
     {{-- USUARIOS (solo admin) --}}
-    @if(auth()->user()->tienePermiso('usuarios.ver'))
-    <li class="nav-item">
-        <a class="nav-link" href="#">
-            <i class="bi bi-person-badge"></i> Usuarios
-        </a>
-    </li>
+    @if (auth()->user()->tienePermiso('usuarios.ver'))
+        <li class="nav-item">
+            <a class="nav-link" href="#">
+                <i class="bi bi-person-badge"></i> Usuarios
+            </a>
+        </li>
     @endif
 
     {{-- BITÁCORA --}}
-    @if(auth()->user()->tienePermiso('bitacora.ver'))
-    <li class="nav-item">
-        <a class="nav-link" href="#">
-            <i class="bi bi-journal-text"></i> Bitácora
-        </a>
-    </li>
+    @if (auth()->user()->tienePermiso('bitacora.ver'))
+        <li class="nav-item">
+            <a class="nav-link" href="#">
+                <i class="bi bi-journal-text"></i> Bitácora
+            </a>
+        </li>
     @endif
 
     {{-- CONFIGURACIÓN --}}
-    @if(auth()->user()->tienePermiso('config.editar'))
-    <li class="nav-item">
-        <a class="nav-link" href="#">
-            <i class="bi bi-gear-fill"></i> Configuración
-        </a>
-    </li>
+    @if (auth()->user()->tienePermiso('config.editar'))
+        <li class="nav-item">
+            <a class="nav-link" href="#">
+                <i class="bi bi-gear-fill"></i> Configuración
+            </a>
+        </li>
     @endif
 
     {{-- TÉRMINOS Y PRIVACIDAD (siempre visible) --}}

@@ -198,7 +198,7 @@
                                                 required maxlength="100" placeholder="Ej. Pérez López">
                                         </div>
 
-                                        <div class="col-md-6">
+                                        <div class="col-md-6 d-none">
                                             <label class="form-label fw-bold small text-uppercase">CURP / DNI</label>
                                             <input type="text" name="curp_dni" id="curp_dni" class="form-control"
                                                 maxlength="50" placeholder="Opcional">

@@ -19,6 +19,7 @@ class User extends Authenticatable
         'email',
         'password',
         'estatus',
+        'puede_conciliar',
     ];
 
     protected $hidden = [
@@ -30,7 +31,8 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'password'          => 'hashed',
+            'puede_conciliar'   => 'boolean',
         ];
     }
 
@@ -69,8 +71,13 @@ class User extends Authenticatable
         });
     }
 
+    public function scopePuedenConciliar($query)
+    {
+        return $query->where('puede_conciliar', true);
+    }
+
     // ============================
-    // HELPERS
+    // HELPERS DE ROL
     // ============================
 
     public function esAdmin(): bool
@@ -88,6 +95,40 @@ class User extends Authenticatable
         return $this->rol?->codigo === 'admin';
     }
 
+    public function esJefeObra(): bool
+    {
+        return $this->rol?->codigo === 'jefe_obra';
+    }
+
+    public function esMaestroObra(): bool
+    {
+        return $this->rol?->codigo === 'maestro_obra';
+    }
+
+    public function esSeguridad(): bool
+    {
+        return $this->rol?->codigo === 'seguridad';
+    }
+
+    public function esTopografo(): bool
+    {
+        return $this->rol?->codigo === 'topografo';
+    }
+
+    public function esRh(): bool
+    {
+        return $this->rol?->codigo === 'rh';
+    }
+
+    public function esContabilidad(): bool
+    {
+        return $this->rol?->codigo === 'contabilidad';
+    }
+
+    // ============================
+    // HELPERS DE PERMISOS
+    // ============================
+
     public function tienePermiso(string $clave): bool
     {
         if ($this->esAdministrador()) {
@@ -98,6 +139,19 @@ class User extends Authenticatable
             ?->permisos()
             ->where('clave', $clave)
             ->exists() ?? false;
+    }
+
+    public function puedeConciliar(): bool
+    {
+        if ($this->esAdministrador() || $this->esContratista()) {
+            return true;
+        }
+
+        if ($this->esJefeObra() && $this->puede_conciliar) {
+            return true;
+        }
+
+        return false;
     }
 
     public function empresaFiltroId(): ?int

@@ -1,0 +1,465 @@
+/* ============================================================
+   CABOSYNC - MÓDULO PASE DE LISTA
+   Estilos específicos del pase de lista. NO repetir lo ya
+   definido en app.css (variables, botones, utilidades, etc.)
+   ============================================================ */
+
+/* ============================================================
+   1. CONTENEDOR Y LAYOUT
+   ============================================================ */
+
+#paseListaContenedor {
+    padding-bottom: 100px;
+}
+
+/* --- Hint de scroll horizontal (visible solo en móvil) --- */
+.scroll-hint-text {
+    display: none;
+    text-align: center;
+    font-size: 0.75rem;
+    color: #6c757d;
+    padding: 0.4rem 0.5rem;
+    background: #f8f9fa;
+    border: 1px dashed #dee2e6;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+}
+@media (max-width: 991px) {
+    .scroll-hint-text {
+        display: block;
+    }
+}
+
+/* ============================================================
+   2. WRAPPER DE TABLA + SCROLL HORIZONTAL
+   ============================================================ */
+
+.tabla-pase-wrapper {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+
+    display: block;
+    width: 100%;
+    max-width: 100%;
+
+    /* Scroll horizontal GARANTIZADO */
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+
+    position: relative;
+    scrollbar-width: thin;
+    scrollbar-color: #1E5180 #f1f1f1;
+}
+
+/* Scrollbar estilizado (Webkit: Chrome/Edge/Safari) */
+.tabla-pase-wrapper::-webkit-scrollbar {
+    height: 10px;
+    background: #f1f1f1;
+}
+.tabla-pase-wrapper::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+.tabla-pase-wrapper::-webkit-scrollbar-thumb {
+    background: #1E5180;
+    border-radius: 4px;
+    border: 2px solid #f1f1f1;
+}
+.tabla-pase-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #F28C28;
+}
+
+/* ============================================================
+   3. TABLA PRINCIPAL
+   ============================================================ */
+
+.tabla-pase {
+    width: max-content;      /* ⬅️ NO usar width: 100% */
+    min-width: 1000px;       /* ⬅️ Fuerza desborde en móvil */
+    table-layout: auto;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: #fff;
+    margin: 0;
+}
+
+.tabla-pase thead th {
+    background: #f8f9fa;
+    color: var(--cabosync-primary);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 0.6rem 0.5rem;
+    text-align: center;
+    vertical-align: middle;
+    border: none;
+    border-bottom: 1px solid #e9ecef;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.tabla-pase thead th.col-empleado {
+    text-align: left;
+    padding-left: 1rem;
+    min-width: 240px;
+    left: 0;
+    z-index: 3;
+    background: #f8f9fa;
+}
+
+.tabla-pase thead th.col-puesto {
+    text-align: left;
+    min-width: 140px;
+    padding-left: 0.75rem;
+    background: #f8f9fa;
+}
+
+.tabla-pase thead th.col-dia {
+    width: 55px;
+}
+
+.tabla-pase thead th.col-dia-hoy {
+    background: rgba(242, 140, 40, 0.15);
+    color: var(--cabosync-secondary-dark, #c96f1c);
+}
+
+.tabla-pase thead th.col-horas-extra {
+    width: 80px;
+}
+
+.tabla-pase thead th.col-acciones {
+    width: 120px;
+}
+
+/* ============================================================
+   4. FILAS DE EMPLEADO
+   ============================================================ */
+
+.fila-empleado td {
+    padding: 0.5rem;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+}
+
+.fila-empleado:last-child td {
+    border-bottom: none;
+}
+
+.fila-empleado:hover {
+    background: #fafbfc;
+}
+
+/* ============================================================
+   5. INFO DEL EMPLEADO
+   ============================================================ */
+
+.empleado-info-simple {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding-left: 0.5rem;
+}
+.empleado-info-simple .empleado-nombre {
+    margin: 0;
+}
+
+.empleado-foto {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 2px solid #f0f0f0;
+}
+
+.empleado-nombre {
+    font-weight: 600;
+    color: var(--cabosync-primary);
+    font-size: 0.875rem;
+    line-height: 1.2;
+    margin: 0;
+}
+
+/* ============================================================
+   6. COLUMNA PUESTO
+   ============================================================ */
+
+.celda-puesto {
+    text-align: left;
+    padding: 0.5rem 0.75rem !important;
+}
+
+.celda-puesto .badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.35rem 0.6rem;
+    white-space: normal;
+    text-align: left;
+    line-height: 1.2;
+}
+
+/* ============================================================
+   7. CELDAS DE DÍA (L M M J V S)
+   ============================================================ */
+
+.celda-dia {
+    text-align: center;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.15s ease;
+    font-size: 1.25rem;
+    padding: 0.5rem 0.25rem !important;
+    border-radius: 6px;
+    width: 50px;
+    height: 50px;
+    position: relative;
+}
+
+.celda-dia:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.celda-dia.estado-vacio {
+    color: #d0d0d0;
+    background: #fafafa;
+}
+.celda-dia.estado-vacio:hover {
+    color: var(--cabosync-primary);
+    background: #e8f0f8;
+}
+.celda-dia.estado-presente {
+    color: #fff;
+    background: #28a745;
+}
+.celda-dia.estado-falta {
+    color: #fff;
+    background: #dc3545;
+}
+.celda-dia.estado-justificada {
+    color: #333;
+    background: #ffc107;
+}
+
+/* Columna del día actual */
+.celda-dia.celda-hoy {
+    box-shadow: inset 0 0 0 2px var(--cabosync-secondary, #f28c28);
+}
+
+/* Indicador de evidencia (clip) */
+.celda-dia .indicador-evidencia {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    font-size: 0.6rem;
+    background: rgba(0, 0, 0, 0.35);
+    color: #fff;
+    border-radius: 50%;
+    width: 14px;
+    height: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Celda cargando (spinner inline) */
+.celda-dia.cargando {
+    opacity: 0.5;
+    pointer-events: none;
+}
+.celda-dia.cargando::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 6px;
+    border: 2px solid transparent;
+    border-top-color: var(--cabosync-primary);
+    animation: spin 0.6s linear infinite;
+}
+
+/* ============================================================
+   8. CELDA DE HORAS EXTRA
+   ============================================================ */
+
+.celda-horas-extra {
+    text-align: center;
+    padding: 0.4rem !important;
+}
+
+.celda-horas-extra.bloqueado {
+    background: #f8f9fa;
+}
+
+.input-horas-extra {
+    max-width: 70px;
+    margin: 0 auto;
+    text-align: center;
+    font-weight: 600;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+}
+
+.input-horas-extra:focus {
+    border-color: var(--cabosync-secondary, #f28c28);
+    box-shadow: 0 0 0 0.2rem rgba(242, 140, 40, 0.2);
+}
+
+.input-horas-extra.cargando {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.horas-extra-bloqueado {
+    display: inline-block;
+    color: #adb5bd;
+    font-weight: 700;
+    cursor: not-allowed;
+}
+
+/* ============================================================
+   9. BOTÓN JUSTIFICAR Y ACCIONES
+   ============================================================ */
+
+.btn-justificar {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+    white-space: nowrap;
+}
+
+.celda-acciones {
+    text-align: center;
+    padding: 0.25rem !important;
+}
+
+/* ============================================================
+   10. PAGINACIÓN
+   ============================================================ */
+
+.paginacion-pase {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    margin-bottom: 1rem;
+}
+
+.paginacion-pase .pagination .page-link {
+    color: var(--cabosync-primary);
+    border-color: #e0e0e0;
+}
+
+.paginacion-pase .pagination .page-item.active .page-link {
+    background: var(--cabosync-primary);
+    border-color: var(--cabosync-primary);
+    color: #fff;
+}
+
+/* ============================================================
+   11. MODAL JUSTIFICAR: SELECTOR DE FECHAS
+   ============================================================ */
+
+#justificarFechasLista {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+#justificarFechasLista button {
+    border-radius: 8px;
+    padding: 0.6rem 0.9rem;
+    font-size: 0.85rem;
+    transition: all 0.15s ease;
+}
+
+#justificarFechasLista button i {
+    font-size: 1rem;
+}
+
+#justificarFechasLista button:hover {
+    transform: translateX(3px);
+}
+
+/* ============================================================
+   12. RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 991px) {
+    .tabla-pase {
+        font-size: 0.85rem;
+        min-width: 950px;
+    }
+    .celda-dia {
+        width: 42px;
+        height: 42px;
+        font-size: 1.1rem;
+    }
+    .empleado-foto {
+        width: 34px;
+        height: 34px;
+    }
+    .empleado-nombre {
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 767px) {
+    .tabla-pase {
+        min-width: 900px;
+    }
+    .empleado-info-simple {
+        gap: 0.5rem;
+    }
+    .empleado-nombre {
+        font-size: 0.78rem;
+    }
+}
+/* ============================================================
+   13. AJUSTE DE ANCHO EN DESKTOP
+   La tabla se centra y limita su ancho máximo en pantallas
+   grandes para evitar huecos o columnas sobreextendidas.
+   ============================================================ */
+
+@media (min-width: 992px) {
+    /* Contenedor de la tabla: centra y limita */
+    .tabla-pase-wrapper {
+        max-width: 1400px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* La tabla crece hasta llenar el wrapper (que ya está limitado) */
+    .tabla-pase {
+        width: 100%;
+        min-width: 1000px;
+        max-width: 1400px;
+    }
+
+    /* Reparto proporcional de columnas en desktop */
+    .tabla-pase thead th.col-empleado { width: 28%; }
+    .tabla-pase thead th.col-puesto   { width: 16%; }
+    .tabla-pase thead th.col-dia      { width: 7%;  }
+    .tabla-pase thead th.col-horas-extra { width: 8%; }
+    .tabla-pase thead th.col-acciones { width: 15%; }
+}
+.celda-dia.celda-bloqueada {
+    cursor: not-allowed;
+    opacity: 0.85;
+    position: relative;
+}
+.celda-dia.celda-bloqueada::after {
+    content: "🔒";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    font-size: 0.7rem;
+}
