@@ -7,6 +7,7 @@ use App\Models\AsistenciaFinal;
 use App\Models\BitacoraAccion;
 use App\Models\Empleado;
 use App\Models\Empresa;
+use App\Models\HoraExtra;
 use App\Models\Justificacion;
 use App\Models\Obra;
 use App\Models\User;
@@ -15,6 +16,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class ConciliacionController extends Controller
@@ -40,7 +42,6 @@ class ConciliacionController extends Controller
         $empresasQuery = Empresa::query();
         $obrasQuery   = Obra::query();
 
-        // Admin ve todas las empresas; Contratista solo la suya
         if ($user->esContratista() || $user->esJefeObra()) {
             $empresasQuery->where('id', $user->empresa_id);
             $obrasQuery->where('empresa_id', $user->empresa_id);
@@ -79,7 +80,6 @@ class ConciliacionController extends Controller
         $weekInput = $request->input('week', now()->format('o-\WW'));
         $pagina    = max(1, (int) $request->input('page', 1));
 
-        // REGLA: Contratista/Jefe solo su empresa; Admin sin restricción
         if ($user->esContratista() || $user->esJefeObra()) {
             $empresaId = $user->empresa_id;
         }
@@ -87,7 +87,6 @@ class ConciliacionController extends Controller
         $semana       = $this->calcularSemanaDesdeWeek($weekInput);
         $fechasSemana = $semana['fechas'];
 
-        // Query base
         $empleadosBaseQuery = Empleado::query()
             ->with(['empresa', 'obra'])
             ->where('estatus', 'activo');
@@ -97,7 +96,6 @@ class ConciliacionController extends Controller
 
         $empleadosBaseQuery->orderBy('puesto_cargo')->orderBy('nombre');
 
-        // Modo lectura global
         $todosLosEmpleadosIds = (clone $empleadosBaseQuery)->pluck('id')->toArray();
         $totalEsperado = count($todosLosEmpleadosIds) * count($fechasSemana);
 
@@ -119,12 +117,12 @@ class ConciliacionController extends Controller
         $asistencias = Asistencia::whereIn('empleado_id', $empleadoIds)
             ->whereIn('fecha', array_keys($fechasSemana))
             ->get()
-            ->keyBy(fn ($a) => $a->empleado_id . '_' . $a->fecha->format('Y-m-d') . '_' . $a->origen_registro);
+            ->keyBy(fn($a) => $a->empleado_id . '_' . $a->fecha->format('Y-m-d') . '_' . $a->origen_registro);
 
         $finales = AsistenciaFinal::whereIn('empleado_id', $empleadoIds)
             ->whereIn('fecha', array_keys($fechasSemana))
             ->get()
-            ->keyBy(fn ($f) => $f->empleado_id . '_' . $f->fecha->format('Y-m-d'));
+            ->keyBy(fn($f) => $f->empleado_id . '_' . $f->fecha->format('Y-m-d'));
 
         $empleadosData = [];
 
@@ -141,14 +139,15 @@ class ConciliacionController extends Controller
                 $asistSeg  = $asistencias->get($keySeg);
                 $final     = $finales->get($keyFin);
 
-                // SOLO es discrepancia si ambos registraron y difieren
                 $hayDiscrepancia = false;
 
                 if ($asistJefe && $asistSeg) {
                     if ($asistJefe->estado !== $asistSeg->estado) {
                         $hayDiscrepancia = true;
-                    } elseif ($asistJefe->estado === 'falta'
-                              && $asistJefe->es_justificada !== $asistSeg->es_justificada) {
+                    } elseif (
+                        $asistJefe->estado === 'falta'
+                        && $asistJefe->es_justificada !== $asistSeg->es_justificada
+                    ) {
                         $hayDiscrepancia = true;
                     }
                 }
@@ -162,9 +161,10 @@ class ConciliacionController extends Controller
                         'id'             => $asistJefe->id,
                         'estado'         => $asistJefe->estado,
                         'es_justificada' => $asistJefe->es_justificada,
+                        'horas_extra'    => (float) $asistJefe->horas_extra,
                         'evidencia_url'  => $asistJefe->evidencia_ruta
-                                                ? asset('storage/' . $asistJefe->evidencia_ruta)
-                                                : null,
+                            ? asset('storage/' . $asistJefe->evidencia_ruta)
+                            : null,
                         'usuario'        => $asistJefe->usuario?->nombre,
                         'updated_at'     => $asistJefe->updated_at?->format('d/m/Y H:i'),
                     ] : null,
@@ -172,9 +172,10 @@ class ConciliacionController extends Controller
                         'id'             => $asistSeg->id,
                         'estado'         => $asistSeg->estado,
                         'es_justificada' => $asistSeg->es_justificada,
+                        'horas_extra'    => (float) $asistSeg->horas_extra,
                         'evidencia_url'  => $asistSeg->evidencia_ruta
-                                                ? asset('storage/' . $asistSeg->evidencia_ruta)
-                                                : null,
+                            ? asset('storage/' . $asistSeg->evidencia_ruta)
+                            : null,
                         'usuario'        => $asistSeg->usuario?->nombre,
                         'updated_at'     => $asistSeg->updated_at?->format('d/m/Y H:i'),
                     ] : null,
@@ -280,9 +281,10 @@ class ConciliacionController extends Controller
                 'id'             => $jefe->id,
                 'estado'         => $jefe->estado,
                 'es_justificada' => $jefe->es_justificada,
+                'horas_extra'    => (float) $jefe->horas_extra,
                 'evidencia_url'  => $jefe->evidencia_ruta
-                                        ? asset('storage/' . $jefe->evidencia_ruta)
-                                        : null,
+                    ? asset('storage/' . $jefe->evidencia_ruta)
+                    : null,
                 'usuario'        => $jefe->usuario?->nombre,
                 'updated_at'     => $jefe->updated_at?->format('d/m/Y H:i'),
             ] : null,
@@ -290,9 +292,10 @@ class ConciliacionController extends Controller
                 'id'             => $seguridad->id,
                 'estado'         => $seguridad->estado,
                 'es_justificada' => $seguridad->es_justificada,
+                'horas_extra'    => (float) $seguridad->horas_extra,
                 'evidencia_url'  => $seguridad->evidencia_ruta
-                                        ? asset('storage/' . $seguridad->evidencia_ruta)
-                                        : null,
+                    ? asset('storage/' . $seguridad->evidencia_ruta)
+                    : null,
                 'usuario'        => $seguridad->usuario?->nombre,
                 'updated_at'     => $seguridad->updated_at?->format('d/m/Y H:i'),
             ] : null,
@@ -394,7 +397,6 @@ class ConciliacionController extends Controller
                 ]);
             }
 
-            // Datos antes (si existía)
             $datosAntes = $finalExistente ? [
                 'estado_final'    => $finalExistente->estado_final,
                 'origen_adoptado' => $finalExistente->origen_adoptado,
@@ -418,6 +420,41 @@ class ConciliacionController extends Controller
                     'bloqueado_edicion'         => true,
                 ]
             );
+
+            // =========================================================
+            // CONSOLIDAR HORAS EXTRAS DEL DÍA
+            // =========================================================
+            $horasJefe = (float) ($jefe?->horas_extra ?? 0);
+            $horasSeg  = (float) ($seguridad?->horas_extra ?? 0);
+
+            $horasFinales = 0;
+            switch ($data['adoptar']) {
+                case 'jefe_obra':
+                    $horasFinales = $horasJefe;
+                    break;
+                case 'seguridad':
+                    $horasFinales = $horasSeg;
+                    break;
+                case 'justificado':
+                default:
+                    $horasFinales = max($horasJefe, $horasSeg);
+                    break;
+            }
+
+            if ($horasFinales > 0) {
+                HoraExtra::updateOrCreate(
+                    [
+                        'empleado_id' => $data['empleado_id'],
+                        'fecha'       => $data['fecha'],
+                    ],
+                    [
+                        'horas_solicitadas'       => (int) round($horasFinales),
+                        'horas_aprobadas'         => 0,
+                        'estado'                  => 'pendiente',
+                        'aprobado_por_usuario_id' => null,
+                    ]
+                );
+            }
 
             // Bitácora con datos antes/después
             $datosDespues = [
@@ -513,16 +550,7 @@ class ConciliacionController extends Controller
 
             foreach ($empleados as $emp) {
                 foreach (array_keys($semana['fechas']) as $fecha) {
-                    $finalExistente = AsistenciaFinal::where('empleado_id', $emp->id)
-                        ->where('fecha', $fecha)
-                        ->where('bloqueado_edicion', true)
-                        ->first();
-
-                    if ($finalExistente && !$user->esAdministrador()) {
-                        $omitidos++;
-                        continue;
-                    }
-
+                    // Obtener jefe y seguridad SIEMPRE
                     $jefe = Asistencia::where('empleado_id', $emp->id)
                         ->where('fecha', $fecha)
                         ->where('origen_registro', 'jefe_obra')
@@ -532,6 +560,47 @@ class ConciliacionController extends Controller
                         ->where('fecha', $fecha)
                         ->where('origen_registro', 'seguridad')
                         ->first();
+
+                    // =========================================================
+                    // CONSOLIDAR HORAS EXTRAS (ANTES del continue)
+                    // =========================================================
+                    $horasJefe = (float) ($jefe?->horas_extra ?? 0);
+                    $horasSeg  = (float) ($seguridad?->horas_extra ?? 0);
+
+                    $horasFinales = 0;
+                    if ($data['adoptar'] === 'jefe_obra') {
+                        $horasFinales = $horasJefe;
+                    } elseif ($data['adoptar'] === 'seguridad') {
+                        $horasFinales = $horasSeg;
+                    } else {
+                        $horasFinales = max($horasJefe, $horasSeg);
+                    }
+
+                    if ($horasFinales > 0) {
+                        HoraExtra::updateOrCreate(
+                            [
+                                'empleado_id' => $emp->id,
+                                'fecha'       => $fecha,
+                            ],
+                            [
+                                'horas_solicitadas'       => (int) round($horasFinales),
+                                'horas_aprobadas'         => 0,
+                                'estado'                  => 'pendiente',
+                                'aprobado_por_usuario_id' => null,
+                            ]
+                        );
+                    }
+
+                    // Verificar si ya está bloqueado
+                    $finalExistente = AsistenciaFinal::where('empleado_id', $emp->id)
+                        ->where('fecha', $fecha)
+                        ->where('bloqueado_edicion', true)
+                        ->first();
+
+                    if ($finalExistente && !$user->esAdministrador()) {
+                        $omitidos++;
+                        continue;
+                    }
 
                     if (!empty($data['solo_coincidentes'])) {
                         if (!$jefe || !$seguridad) {
@@ -681,8 +750,10 @@ class ConciliacionController extends Controller
                 if ($jefe && $seguridad) {
                     if ($jefe->estado !== $seguridad->estado) {
                         $hayDiscrepancia = true;
-                    } elseif ($jefe->estado === 'falta'
-                              && $jefe->es_justificada !== $seguridad->es_justificada) {
+                    } elseif (
+                        $jefe->estado === 'falta'
+                        && $jefe->es_justificada !== $seguridad->es_justificada
+                    ) {
                         $hayDiscrepancia = true;
                     }
                 }
@@ -702,24 +773,19 @@ class ConciliacionController extends Controller
         // PASO 2: generar TODO
         DB::beginTransaction();
         try {
-            $creados    = 0;
-            $nulos      = 0;
-            $bloqueados = 0;
-            $total      = 0;
+            $creados          = 0;
+            $nulos            = 0;
+            $bloqueados       = 0;
+            $horasExtrasCreadas = 0;
+            $total            = 0;
 
             foreach ($empleados as $emp) {
                 foreach ($fechas as $fecha) {
                     $total++;
 
-                    $finalExistente = AsistenciaFinal::where('empleado_id', $emp->id)
-                        ->where('fecha', $fecha)
-                        ->first();
-
-                    if ($finalExistente && $finalExistente->bloqueado_edicion) {
-                        $bloqueados++;
-                        continue;
-                    }
-
+                    // =========================================================
+                    // OBTENER jefe y seguridad SIEMPRE (para horas extras)
+                    // =========================================================
                     $jefe = Asistencia::where('empleado_id', $emp->id)
                         ->where('fecha', $fecha)
                         ->where('origen_registro', 'jefe_obra')
@@ -729,6 +795,53 @@ class ConciliacionController extends Controller
                         ->where('fecha', $fecha)
                         ->where('origen_registro', 'seguridad')
                         ->first();
+
+                    // =========================================================
+                    // CONSOLIDAR HORAS EXTRAS (ANTES del continue)
+                    // =========================================================
+                    $horasJefe = (float) ($jefe?->horas_extra ?? 0);
+                    $horasSeg  = (float) ($seguridad?->horas_extra ?? 0);
+
+                    if ($horasJefe == $horasSeg) {
+                        $horasFinales = $horasJefe;
+                    } elseif ($horasJefe > 0 && $horasSeg == 0) {
+                        $horasFinales = $horasJefe;
+                    } elseif ($horasSeg > 0 && $horasJefe == 0) {
+                        $horasFinales = $horasSeg;
+                    } else {
+                        $horasFinales = max($horasJefe, $horasSeg);
+                    }
+
+                    if ($horasFinales > 0) {
+                        $horaExtra = HoraExtra::updateOrCreate(
+                            [
+                                'empleado_id' => $emp->id,
+                                'fecha'       => $fecha,
+                            ],
+                            [
+                                'horas_solicitadas'       => (int) round($horasFinales),
+                                'horas_aprobadas'         => 0,
+                                'estado'                  => 'pendiente',
+                                'aprobado_por_usuario_id' => null,
+                            ]
+                        );
+
+                        if ($horaExtra->wasRecentlyCreated) {
+                            $horasExtrasCreadas++;
+                        }
+                    }
+
+                    // =========================================================
+                    // Ahora verificar si ya está bloqueado
+                    // =========================================================
+                    $finalExistente = AsistenciaFinal::where('empleado_id', $emp->id)
+                        ->where('fecha', $fecha)
+                        ->first();
+
+                    if ($finalExistente && $finalExistente->bloqueado_edicion) {
+                        $bloqueados++;
+                        continue;
+                    }
 
                     $estadoFinal      = null;
                     $origenAdoptado   = null;
@@ -778,17 +891,18 @@ class ConciliacionController extends Controller
 
             BitacoraService::insertar(
                 'conciliacion.semana_completa',
-                "Semana {$data['week']} conciliada. Procesados: {$total}, con estado: {$creados}, sin registro: {$nulos}, ya bloqueados: {$bloqueados}.",
+                "Semana {$data['week']} conciliada. Procesados: {$total}, con estado: {$creados}, sin registro: {$nulos}, ya bloqueados: {$bloqueados}, horas extras: {$horasExtrasCreadas}.",
                 'App\Models\AsistenciaFinal',
                 0,
                 [
-                    'week'        => $data['week'],
-                    'empresa_id'  => $empresaId,
-                    'obra_id'     => $data['obra_id'] ?? null,
-                    'creados'     => $creados,
-                    'nulos'       => $nulos,
-                    'bloqueados'  => $bloqueados,
-                    'total'       => $total,
+                    'week'               => $data['week'],
+                    'empresa_id'         => $empresaId,
+                    'obra_id'            => $data['obra_id'] ?? null,
+                    'creados'            => $creados,
+                    'nulos'              => $nulos,
+                    'bloqueados'         => $bloqueados,
+                    'horas_extras_creadas' => $horasExtrasCreadas,
+                    'total'              => $total,
                 ],
                 [
                     'empresa_id' => $empresaId,
@@ -808,12 +922,13 @@ class ConciliacionController extends Controller
                 'generados'  => $creados,
                 'nulos'      => $nulos,
                 'bloqueados' => $bloqueados,
+                'horas_extras_creadas' => $horasExtrasCreadas,
                 'total'      => $total,
-                'mensaje'    => "Semana conciliada. Total: {$total} ({$creados} con estado, {$nulos} sin registro, {$bloqueados} ya bloqueados).",
+                'mensaje'    => "Semana conciliada. Total: {$total}. Horas extras generadas: {$horasExtrasCreadas}.",
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Error conciliando semana', ['exception' => $e]);
+            Log::error('Error conciliando semana', ['exception' => $e]);
             return response()->json(['success' => false, 'error' => 'Error: ' . $e->getMessage()], 500);
         }
     }

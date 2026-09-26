@@ -57,7 +57,7 @@
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-body">
                 <div class="row g-2 align-items-end">
-                    @if (auth()->user()->esAdministrador() || auth()->user()->esContratista() && $empresas->count() > 0)
+                    @if (auth()->user()->esAdministrador() || (auth()->user()->esContratista() && $empresas->count() > 0))
                         <div class="col-md-3">
                             <label class="form-label small fw-bold mb-1">Empresa</label>
                             <select id="filtroEmpresa" class="form-select form-select-sm">
@@ -607,7 +607,8 @@
             // =========================================================
             // VALIDACIÓN 2: día no editable según rol
             // =========================================================
-            const hoy = new Date().toISOString().split('T')[0];
+            // ✅ Usar la fecha que el servidor considera como HOY
+            const hoy = paseListaData?.hoy || new Date().toISOString().split('T')[0];
 
             if (!USER_ES_ADMIN && !USER_ES_CONTRATISTA) {
                 // Jefe de Obra, Seguridad → solo HOY
@@ -796,13 +797,13 @@
             html += `
                 <td class="celda-acciones">
                     ${PUEDE_JUSTIFICAR ? `
-                            <button type="button" class="btn btn-sm btn-outline-warning btn-justificar d-none"
-                                    data-empleado-id="${emp.id}"
-                                    data-nombre="${emp.nombre_completo}"
-                                    onclick="abrirModalJustificar(${emp.id}, '${emp.nombre_completo.replace(/'/g, "\\'")}')">
-                                <i class="bi bi-exclamation-triangle"></i> Justificar
-                            </button>
-                        ` : ''}
+                                <button type="button" class="btn btn-sm btn-outline-warning btn-justificar d-none"
+                                        data-empleado-id="${emp.id}"
+                                        data-nombre="${emp.nombre_completo}"
+                                        onclick="abrirModalJustificar(${emp.id}, '${emp.nombre_completo.replace(/'/g, "\\'")}')">
+                                    <i class="bi bi-exclamation-triangle"></i> Justificar
+                                </button>
+                            ` : ''}
                     ${emp.bloqueado_horas_extras
                         ? `<span class="badge bg-dark ms-1" title="Bloqueado por falta injustificada (${emp.dias_penalizacion} días)">🔒 ${emp.dias_penalizacion}d</span>`
                         : ''}

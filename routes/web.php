@@ -6,6 +6,7 @@ use App\Http\Controllers\ConciliacionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EmpleadoController;
 use App\Http\Controllers\EmpresaController;
+use App\Http\Controllers\HoraExtraController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\ObraController;
 use App\Http\Controllers\ReporteController;
@@ -150,6 +151,25 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('configuracion/legal')->name('legal.admin.')->group(function () {
         Route::get('/',       [LegalController::class, 'admin'])->name('index');
         Route::post('/guardar', [LegalController::class, 'guardar'])->name('guardar');
+    });
+    Route::prefix('reportes')->name('reportes.')->group(function () {
+        // NUEVAS (deben ir primero)
+        Route::get('/',         [ReporteController::class, 'index'])->name('index');
+        Route::get('/historial', [ReporteController::class, 'historial'])->name('historial');
+
+        // Existentes
+        Route::get('/descargar/{tipo}', [ReporteController::class, 'descargar'])->name('descargar');
+        Route::get('/blob/{tipo}',      [ReporteController::class, 'obtenerBlob'])->name('blob');
+        Route::post('/generar-link',    [ReporteController::class, 'generarLink'])->name('generarLink');
+        Route::post('/enviar-correo',   [ReporteController::class, 'enviarCorreo'])->name('enviarCorreo');
+    });
+    Route::prefix('horas-extras')->name('horas-extras.')->group(function () {
+        Route::get('/',                 [HoraExtraController::class, 'index'])->name('index');
+        Route::get('/historial',        [HoraExtraController::class, 'historial'])->name('historial');
+        Route::post('/aprobar-masivo',  [HoraExtraController::class, 'aprobarMasivo'])->name('aprobarMasivo');
+        Route::post('/rechazar-masivo', [HoraExtraController::class, 'rechazarMasivo'])->name('rechazarMasivo');
+        Route::post('/{id}/aprobar',    [HoraExtraController::class, 'aprobar'])->name('aprobar');
+        Route::post('/{id}/rechazar',   [HoraExtraController::class, 'rechazar'])->name('rechazar');
     });
 });
 

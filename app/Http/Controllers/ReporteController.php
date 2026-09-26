@@ -17,6 +17,8 @@ use Illuminate\Support\Str;
 
 class ReporteController extends Controller
 {
+    protected const HORAS_VIGENCIA_TOKEN = 48;
+
     protected ReporteSemanalService $reporteService;
 
     public function __construct(ReporteSemanalService $reporteService)
@@ -31,23 +33,20 @@ class ReporteController extends Controller
 
     /**
      * Resuelve el empresa_id efectivo.
-     * Devuelve null si el Admin NO selecciona empresa (para que el reporte
-     * incluya TODAS las empresas).
+     * - Contratista/Jefe: SIEMPRE su propia empresa.
+     * - Admin: DEBE venir empresa en el request.
      */
-    protected function resolverEmpresaId($user, $empresaIdSolicitada): ?int
+    protected function resolverEmpresaId($user, $empresaIdSolicitada): int
     {
-        // Contratista/Jefe: siempre su empresa
         if ($user->esContratista() || $user->esJefeObra()) {
-            return $user->empresa_id;
+            return (int) $user->empresa_id;
         }
 
-        // Admin: si selecciona empresa, respetarla
-        if (!empty($empresaIdSolicitada)) {
-            return (int) $empresaIdSolicitada;
+        if (empty($empresaIdSolicitada)) {
+            throw new \Exception('Debes seleccionar una empresa para generar el reporte.');
         }
 
-        // Admin sin filtro: null = todas las empresas
-        return null;
+        return (int) $empresaIdSolicitada;
     }
 
     protected function opcionesBitacora(Request $request, ?int $empresaId = null): array
@@ -64,6 +63,89 @@ class ReporteController extends Controller
     }
 
     // =========================================================
+    // VISTA PRINCIPAL DE REPORTES
+    // =========================================================
+    public function index(Request $request)
+    {
+        $user = $request->user();
+
+        // Empresas visibles según rol
+        $empresasQuery = Empresa::query()->where('estatus', 'activo')->orderBy('nombre');
+        if ($user->esContratista() || $user->esJefeObra()) {
+            $empresasQuery->where('id', $user->empresa_id);
+        }
+        $empresas = $empresasQuery->get(['id', 'nombre']);
+
+        // Obras visibles según rol
+        $obrasQuery = \App\Models\Obra::query()->where('estatus', 'activa')->orderBy('nombre');
+        if ($user->esContratista() || $user->esJefeObra()) {
+            $obrasQuery->where('empresa_id', $user->empresa_id);
+        }
+        $obras = $obrasQuery->get(['id', 'nombre', 'empresa_id']);
+
+        return view('reportes.index', compact('empresas', 'obras'));
+    }
+
+    // =========================================================
+    // HISTORIAL AJAX
+    // =========================================================
+    public function historial(Request $request)
+    {
+        $user = $request->user();
+
+        $query = ReporteToken::with(['empresa', 'obra'])
+            ->orderByDesc('created_at');
+
+        if ($user->esContratista() || $user->esJefeObra()) {
+            $query->where('empresa_id', $user->empresa_id);
+        }
+
+        if ($request->filled('empresa_id') && $user->esAdministrador()) {
+            $query->where('empresa_id', $request->input('empresa_id'));
+        }
+
+        if ($request->filled('obra_id')) {
+            $query->where('obra_id', $request->input('obra_id'));
+        }
+
+        if ($request->filled('week')) {
+            $query->where('week', $request->input('week'));
+        }
+
+        if ($request->filled('estado')) {
+            if ($request->input('estado') === 'vigentes') {
+                $query->where('expira_en', '>', now());
+            } elseif ($request->input('estado') === 'expirados') {
+                $query->where('expira_en', '<=', now());
+            }
+        }
+
+        $registros = $query->limit(100)->get();
+
+        $registrosMapeados = $registros->map(function ($r) {
+            return [
+                'id'            => $r->id,
+                'empresa'       => $r->empresa?->nombre ?? '—',
+                'obra'          => $r->obra?->nombre ?? 'Todas',
+                'week'          => $r->week,
+                'creado'        => $r->created_at->format('d/m/Y H:i'),
+                'creado_humano' => $r->created_at->diffForHumans(),
+                'expira'        => $r->expira_en ? $r->expira_en->format('d/m/Y H:i') : '—',
+                'esta_vigente'  => $r->estaVigente(),
+                'descargas'     => $r->descargas,
+                'link_publico'  => route('reportes.publico.descarga', $r->token),
+                'link_pdf'      => route('reportes.publico.descargar', [$r->token, 'pdf']),
+                'link_excel'    => route('reportes.publico.descargar', [$r->token, 'excel']),
+            ];
+        });
+
+        return response()->json([
+            'success'   => true,
+            'registros' => $registrosMapeados,
+        ]);
+    }
+
+    // =========================================================
     // DESCARGAR PDF / EXCEL
     // =========================================================
     public function descargar(Request $request, string $tipo)
@@ -72,7 +154,7 @@ class ReporteController extends Controller
 
         $data = $request->validate([
             'week'       => 'required|string',
-            'empresa_id' => 'nullable|exists:empresas,id',
+            'empresa_id' => 'required|exists:empresas,id',
             'obra_id'    => 'nullable|exists:obras,id',
         ]);
 
@@ -80,12 +162,24 @@ class ReporteController extends Controller
             abort(400, 'Tipo de archivo inválido');
         }
 
-        $empresaId = $this->resolverEmpresaId($user, $data['empresa_id'] ?? null);
+        $empresaId = $this->resolverEmpresaId($user, $data['empresa_id']);
 
         try {
-            $path = $tipo === 'pdf'
-                ? $this->reporteService->generarPdf($empresaId, $data['obra_id'] ?? null, $data['week'], $user->nombre)
-                : $this->reporteService->generarExcel($empresaId, $data['obra_id'] ?? null, $data['week'], $user->nombre);
+            // Generar AMBOS archivos
+            $pdfPath   = $this->reporteService->generarPdf($empresaId, $data['obra_id'] ?? null, $data['week'], $user->nombre);
+            $excelPath = $this->reporteService->generarExcel($empresaId, $data['obra_id'] ?? null, $data['week'], $user->nombre);
+
+            // Crear token con AMBOS paths
+            ReporteToken::create([
+                'token'      => Str::random(48),
+                'empresa_id' => $empresaId,
+                'obra_id'    => $data['obra_id'] ?? null,
+                'week'       => $data['week'],
+                'pdf_path'   => $pdfPath,
+                'excel_path' => $excelPath,
+                'expira_en'  => now()->addHours(self::HORAS_VIGENCIA_TOKEN),
+                'descargas'  => 0,
+            ]);
 
             BitacoraService::insertar(
                 'reporte.descargar_' . $tipo,
@@ -101,16 +195,17 @@ class ReporteController extends Controller
                 $this->opcionesBitacora($request, $empresaId)
             );
 
-            $nombreArchivo = "Reporte-{$data['week']}." . ($tipo === 'pdf' ? 'pdf' : 'xlsx');
-            $mime = $tipo === 'pdf'
-                ? 'application/pdf'
-                : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-
+            $path = $tipo === 'pdf' ? $pdfPath : $excelPath;
             $rutaAbsoluta = storage_path('app/public/' . $path);
 
             if (!file_exists($rutaAbsoluta)) {
                 abort(404, 'Archivo no encontrado');
             }
+
+            $nombreArchivo = "Reporte-{$data['week']}." . ($tipo === 'pdf' ? 'pdf' : 'xlsx');
+            $mime = $tipo === 'pdf'
+                ? 'application/pdf'
+                : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
             return response()->download($rutaAbsoluta, $nombreArchivo, ['Content-Type' => $mime]);
 
@@ -129,7 +224,7 @@ class ReporteController extends Controller
 
         $data = $request->validate([
             'week'       => 'required|string',
-            'empresa_id' => 'nullable|exists:empresas,id',
+            'empresa_id' => 'required|exists:empresas,id',
             'obra_id'    => 'nullable|exists:obras,id',
         ]);
 
@@ -137,7 +232,7 @@ class ReporteController extends Controller
             abort(400, 'Tipo inválido');
         }
 
-        $empresaId = $this->resolverEmpresaId($user, $data['empresa_id'] ?? null);
+        $empresaId = $this->resolverEmpresaId($user, $data['empresa_id']);
 
         try {
             $path = $tipo === 'pdf'
@@ -173,29 +268,25 @@ class ReporteController extends Controller
 
         $data = $request->validate([
             'week'       => 'required|string',
-            'empresa_id' => 'nullable|exists:empresas,id',
+            'empresa_id' => 'required|exists:empresas,id',
             'obra_id'    => 'nullable|exists:obras,id',
         ]);
 
-        $empresaId = $this->resolverEmpresaId($user, $data['empresa_id'] ?? null);
-
         try {
+            $empresaId = $this->resolverEmpresaId($user, $data['empresa_id']);
+
             $pdfPath   = $this->reporteService->generarPdf($empresaId, $data['obra_id'] ?? null, $data['week'], $user->nombre);
             $excelPath = $this->reporteService->generarExcel($empresaId, $data['obra_id'] ?? null, $data['week'], $user->nombre);
 
-            // Si empresaId es null, usar 0 para el registro del token (o la primera empresa real)
-            $empresaParaToken = $empresaId ?? Empresa::whereHas('empleados', function ($q) {
-                $q->where('estatus', 'activo');
-            })->value('id') ?? Empresa::value('id');
-
             $token = ReporteToken::create([
                 'token'      => Str::random(48),
-                'empresa_id' => $empresaParaToken,
+                'empresa_id' => $empresaId,
                 'obra_id'    => $data['obra_id'] ?? null,
                 'week'       => $data['week'],
                 'pdf_path'   => $pdfPath,
                 'excel_path' => $excelPath,
-                'expira_en'  => now()->addHours(24),
+                'expira_en'  => now()->addHours(self::HORAS_VIGENCIA_TOKEN),
+                'descargas'  => 0,
             ]);
 
             BitacoraService::insertar(
@@ -220,6 +311,7 @@ class ReporteController extends Controller
             ]);
 
         } catch (\Exception $e) {
+            \Log::error('Error ReporteController::generarLink', ['exception' => $e]);
             return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
     }
@@ -233,14 +325,14 @@ class ReporteController extends Controller
 
         $data = $request->validate([
             'week'          => 'required|string',
-            'empresa_id'    => 'nullable|exists:empresas,id',
+            'empresa_id'    => 'required|exists:empresas,id',
             'obra_id'       => 'nullable|exists:obras,id',
             'destinatarios' => 'required|string',
             'cc'            => 'nullable|string',
             'mensaje'       => 'nullable|string|max:1000',
         ]);
 
-        $empresaId = $this->resolverEmpresaId($user, $data['empresa_id'] ?? null);
+        $empresaId = $this->resolverEmpresaId($user, $data['empresa_id']);
 
         $destinatarios = array_filter(array_map('trim', preg_split('/[,;]/', $data['destinatarios'])));
         $cc = !empty($data['cc']) ? array_filter(array_map('trim', preg_split('/[,;]/', $data['cc']))) : [];
@@ -268,7 +360,7 @@ class ReporteController extends Controller
             Mail::to($destinatarios)
                 ->cc($cc)
                 ->send(new ReporteSemanalMail(
-                    empresaNombre: $empresa?->nombre ?? 'Todas las empresas',
+                    empresaNombre: $empresa?->nombre ?? 'Empresa',
                     semanaTexto: $semanaTexto,
                     mensajePersonalizado: $mensaje,
                     pdfPath: $pdfPath,
@@ -327,16 +419,30 @@ class ReporteController extends Controller
     {
         $reporteToken = ReporteToken::where('token', $token)->firstOrFail();
 
-        if ($reporteToken->estaExpirado()) {
+        /* if ($reporteToken->estaExpirado()) {
             abort(410, 'El enlace ha expirado');
-        }
+        } */
 
         if (!in_array($tipo, ['pdf', 'excel'])) {
             abort(400, 'Tipo inválido');
         }
 
         $path = $tipo === 'pdf' ? $reporteToken->pdf_path : $reporteToken->excel_path;
-        $rutaAbsoluta = storage_path('app/public/' . $path);
+        $rutaAbsoluta = $path ? storage_path('app/public/' . $path) : null;
+
+        // Si el archivo no existe, regenerarlo
+        if (!$rutaAbsoluta || !file_exists($rutaAbsoluta)) {
+            $service = app(ReporteSemanalService::class);
+            $nuevoPath = $tipo === 'pdf'
+                ? $service->generarPdf($reporteToken->empresa_id, $reporteToken->obra_id, $reporteToken->week, 'Sistema')
+                : $service->generarExcel($reporteToken->empresa_id, $reporteToken->obra_id, $reporteToken->week, 'Sistema');
+
+            $reporteToken->update([
+                $tipo === 'pdf' ? 'pdf_path' : 'excel_path' => $nuevoPath,
+            ]);
+
+            $rutaAbsoluta = storage_path('app/public/' . $nuevoPath);
+        }
 
         if (!file_exists($rutaAbsoluta)) {
             abort(404, 'Archivo no encontrado');

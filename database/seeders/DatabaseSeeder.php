@@ -18,6 +18,8 @@ class DatabaseSeeder extends Seeder
             EmpleadoSeeder::class,
             ConfiguracionSistemaSeeder::class,
             TestAsistenciaSeeder::class,
+            ConfiguracionLegalSeeder::class,
+            TestAsistenciaSeeder::class,
         ]);
     }
 }

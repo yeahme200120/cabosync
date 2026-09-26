@@ -15,6 +15,8 @@ export default defineConfig({
                 'resources/css/obras.css',
                 'resources/css/bitacora.css',
                 'resources/css/legal.css',
+                'resources/css/reportes-ui.css',
+                'resources/css/horas-extras.css',
 
                 'resources/js/app.js',
                 'resources/js/reportes.js',
@@ -24,6 +26,8 @@ export default defineConfig({
                 'resources/js/obras.js',
                 'resources/js/bitacora.js',
                 'resources/js/legal.js',
+                'resources/js/reportes-ui.js',
+                'resources/js/horas-extras.js',
             ],
             refresh: true,
         }),

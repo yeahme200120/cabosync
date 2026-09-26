@@ -53,9 +53,10 @@
     @endif
 
     {{-- HORAS EXTRAS --}}
-    @if (auth()->user()->tienePermiso('horas_extras.ver'))
+    @if (auth()->user()->esAdministrador() || auth()->user()->esContratista())
         <li class="nav-item">
-            <a class="nav-link" href="#">
+            <a href="{{ route('horas-extras.index') }}"
+                class="nav-link {{ request()->routeIs('horas-extras.*') ? 'active' : '' }}">
                 <i class="bi bi-clock-history"></i> Horas Extras
             </a>
         </li>
@@ -64,7 +65,8 @@
     {{-- REPORTES --}}
     @if (auth()->user()->tienePermiso('reportes.ver'))
         <li class="nav-item">
-            <a class="nav-link" href="#">
+            <a href="{{ route('reportes.index') }}"
+                class="nav-link {{ request()->routeIs('reportes.*') ? 'active' : '' }}">
                 <i class="bi bi-file-earmark-bar-graph"></i> Reportes
             </a>
         </li>

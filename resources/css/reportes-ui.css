@@ -1,0 +1,52 @@
+/* ============================================================
+   CABOSYNC - MÓDULO REPORTES (UI)
+   ============================================================ */
+
+.reportes-tabla {
+    font-size: 0.875rem;
+}
+
+.reportes-tabla thead th {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+    color: #495057;
+    border-bottom: 2px solid #dee2e6;
+    padding: 0.75rem 0.85rem;
+    white-space: nowrap;
+}
+
+.reportes-tabla tbody td {
+    padding: 0.75rem 0.85rem;
+    vertical-align: middle;
+}
+
+.reportes-tabla tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+#linkGenerado {
+    word-break: break-all;
+}
+
+#linkPublicoUrl {
+    color: #1E5180;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+#linkPublicoUrl:hover {
+    color: #F28C28;
+    text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+    .reportes-tabla {
+        font-size: 0.8rem;
+    }
+
+    .reportes-tabla tbody td {
+        padding: 0.55rem 0.6rem;
+    }
+}

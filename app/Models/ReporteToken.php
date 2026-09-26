@@ -53,7 +53,9 @@ class ReporteToken extends Model
 
     public function registrarDescarga(): void
     {
-        $this->increment('descargas');
+        if ($this->descargas < 20) { // límite arbitrario
+            $this->increment('descargas');
+        }
     }
 
     // ============================

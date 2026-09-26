@@ -13,6 +13,11 @@ class RequiereAceptarAviso
 {
     public function handle(Request $request, Closure $next): Response
     {
+        // ⚠️ EXCEPCIONES: permitir estas rutas para que el usuario pueda aceptar
+        if ($request->is('legal/aceptar') || $request->is('legal-app/aceptar') || $request->is('logout')) {
+            return $next($request);
+        }
+
         if (!Auth::check()) {
             return $next($request);
         }
