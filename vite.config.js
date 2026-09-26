@@ -17,6 +17,7 @@ export default defineConfig({
                 'resources/css/legal.css',
                 'resources/css/reportes-ui.css',
                 'resources/css/horas-extras.css',
+                'resources/css/dashboard.css',
 
                 'resources/js/app.js',
                 'resources/js/reportes.js',
